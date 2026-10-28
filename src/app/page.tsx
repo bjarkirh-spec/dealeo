@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import LandingFadeIn from "@/components/LandingFadeIn";
 
 export const metadata: Metadata = {
@@ -24,8 +25,6 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" />
       <style>{`
 :root {
   --bg:#0b0d12; --s1:#111318; --s2:#181b24; --s3:#1e2230;
@@ -253,11 +252,11 @@ img{max-width:100%}
       {/* NAV */}
       <nav className="lp-nav">
         <div className="lp-nav-inner">
-          <a href="/" className="lp-logo">
+          <Link href="/" className="lp-logo">
             <span>Deal<em>eo</em></span>
-          </a>
+          </Link>
           <div className="lp-nav-r">
-            <a href="/deals" className="lp-btn lp-btn-outline">Open app</a>
+            <Link href="/deals" className="lp-btn lp-btn-outline">Open app</Link>
             <a href="https://play.google.com/store/apps/details?id=es.dealeo.app" className="lp-btn lp-btn-orange">Download free</a>
           </div>
         </div>
@@ -280,7 +279,7 @@ img{max-width:100%}
               </p>
               <div className="lp-hero-actions">
                 <a href="https://play.google.com/store/apps/details?id=es.dealeo.app" className="lp-btn lp-btn-orange lp-btn-lg">Find tonight&apos;s deals</a>
-                <a href="/deals" className="lp-btn lp-btn-outline lp-btn-lg">Open in browser →</a>
+                <Link href="/deals" className="lp-btn lp-btn-outline lp-btn-lg">Open in browser →</Link>
               </div>
               <div className="lp-hero-trust">
                 <span className="lp-trust-item">Free forever</span>
@@ -586,7 +585,7 @@ img{max-width:100%}
                   </div>
                 ))}
               </div>
-              <a href="/business" className="lp-btn lp-btn-teal" style={{background:'var(--teal)',color:'#fff',marginTop:12}}>List your venue free →</a>
+              <Link href="/business" className="lp-btn lp-btn-teal" style={{background:'var(--teal)',color:'#fff',marginTop:12}}>List your venue free →</Link>
             </div>
             <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
               <div className="lp-fbv-card">
@@ -613,7 +612,7 @@ img{max-width:100%}
           <p className="lp-cta-sub">The happy hour started 20 minutes ago.</p>
           <div className="lp-cta-btns">
             <a href="https://play.google.com/store/apps/details?id=es.dealeo.app" className="lp-btn lp-btn-orange lp-btn-lg">Download free on Android</a>
-            <a href="/deals" className="lp-btn lp-btn-outline lp-btn-lg">Open in browser →</a>
+            <Link href="/deals" className="lp-btn lp-btn-outline lp-btn-lg">Open in browser →</Link>
           </div>
           <p className="lp-cta-note">Free forever · No account needed · Works right now</p>
         </div>
@@ -624,9 +623,9 @@ img{max-width:100%}
         <div className="lp-footer-inner">
           <span className="lp-footer-copy">© 2025 Dealeo · Alicante &amp; Benidorm</span>
           <div className="lp-footer-links">
-            <a href="/deals">App</a>
-            <a href="/business">For bars</a>
-            <a href="/sobre-dealeo">About</a>
+            <Link href="/deals">App</Link>
+            <Link href="/business">For bars</Link>
+            <Link href="/sobre-dealeo">About</Link>
           </div>
         </div>
       </footer>

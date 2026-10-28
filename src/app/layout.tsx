@@ -59,6 +59,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#0f1117" />
         <meta name="color-scheme" content="dark" />
         <meta name="google-site-verification" content="dINhmDZQaN_9eOfNB8lSu2z7JSChUy0qpzDdWmz8tIM" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@900&family=DM+Sans:wght@400;500;600&display=swap" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify({
