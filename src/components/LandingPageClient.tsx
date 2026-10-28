@@ -453,40 +453,60 @@ img{max-width:100%}
               <div className="lp-phone-glow" />
               <div className="lp-phone">
                 <div className="lp-pill-wrap"><div className="lp-pill" /></div>
-                <div className="lp-p-top">
-                  <span className="lp-p-top-title">dealeo</span>
-                  <span className="lp-live-dot">LIVE</span>
+                {/* Header */}
+                <div style={{padding:'8px 14px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontFamily:'var(--fd)',fontWeight:900,fontSize:'1.1rem',color:'#f97316',letterSpacing:'-.01em'}}>Deal<span style={{color:'#0d9488'}}>eo</span></span>
+                  <span style={{display:'flex',alignItems:'center',gap:4,background:'#ef4444',color:'#fff',fontSize:'.5rem',fontWeight:700,padding:'2px 7px',borderRadius:20,letterSpacing:'.05em'}}>
+                    <span style={{width:4,height:4,borderRadius:'50%',background:'#fff',display:'inline-block'}} />
+                    LIVE
+                  </span>
                 </div>
-                <div className="lp-p-tabs">
-                  <div className="lp-p-tab on">{lang === "es" ? "Todo" : "All"}</div>
-                  <div className="lp-p-tab">Happy Hour</div>
-                  <div className="lp-p-tab">2{lang === "es" ? "x1" : "-for-1"}</div>
+                {/* Search */}
+                <div style={{margin:'0 10px 10px',background:'#1e2230',borderRadius:12,padding:'7px 10px',display:'flex',alignItems:'center',gap:6}}>
+                  <span style={{fontSize:'.7rem',color:'#55586a'}}>🔍</span>
+                  <span style={{fontSize:'.6rem',color:'#55586a'}}>{lang==="es"?"Buscar ofertas...":"Search deals..."}</span>
                 </div>
-                <div className="lp-dc">
-                  <div className="lp-dc-img">
-                    🍻
-                    <span className="lp-dc-tag">2{lang === "es" ? "x1" : "-for-1"}</span>
+                {/* Category pills */}
+                <div style={{display:'flex',gap:5,padding:'0 10px 10px',overflowX:'hidden'}}>
+                  {(lang==="es"
+                    ? ['🎯 Todas','🔴 En Vivo','2️⃣ 2x1','🍹 Happy Hour']
+                    : ['🎯 All','🔴 Live','2️⃣ 2-for-1','🍹 Happy Hour']
+                  ).map((label,i) => (
+                    <span key={i} style={{flexShrink:0,background:i===0?'#0d9488':'#1e2230',color:i===0?'#fff':'#9496a3',fontSize:'.48rem',fontWeight:700,padding:'4px 7px',borderRadius:20,whiteSpace:'nowrap'}}>{label}</span>
+                  ))}
+                </div>
+                {/* Deal card 1 - large with photo */}
+                <div style={{margin:'0 10px 8px',background:'#111318',border:'1px solid #20242f',borderRadius:14,overflow:'hidden',display:'flex',gap:0}}>
+                  <div style={{width:72,flexShrink:0,background:'linear-gradient(160deg,#1a2a1a,#0d1a12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'2rem'}}>🍹</div>
+                  <div style={{padding:'9px 10px',flex:1,minWidth:0}}>
+                    <div style={{display:'flex',gap:4,marginBottom:5}}>
+                      <span style={{background:'#0d9488',color:'#fff',fontSize:'.45rem',fontWeight:700,padding:'2px 6px',borderRadius:20}}>2x1</span>
+                      <span style={{background:'rgba(74,222,128,.12)',color:'#4ade80',fontSize:'.45rem',fontWeight:700,padding:'2px 6px',borderRadius:20}}>✓ {lang==="es"?"Del local":"Verified"}</span>
+                    </div>
+                    <div style={{fontWeight:700,fontSize:'.72rem',color:'#efefef',marginBottom:2}}>{lang==="es"?"2 cócteles por €14":"2 cocktails for €14"}</div>
+                    <div style={{fontSize:'.55rem',color:'#9496a3',marginBottom:5}}>The Whisper Cocktail Co · Centro</div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                      <span style={{fontSize:'.5rem',color:'#4ade80',display:'flex',alignItems:'center',gap:3}}>
+                        <span style={{width:4,height:4,borderRadius:'50%',background:'#4ade80',display:'inline-block'}} />
+                        {lang==="es"?"En vivo ahora":"Live now"}
+                      </span>
+                      <span style={{background:'#f97316',color:'#fff',fontSize:'.5rem',fontWeight:700,padding:'3px 8px',borderRadius:20}}>{lang==="es"?"Explorar":"Explore"}</span>
+                    </div>
                   </div>
-                  <div className="lp-dc-body">
-                    <div className="lp-dc-name">2{lang === "es" ? "x1" : "-for-1"} Gin Tonics</div>
-                    <div className="lp-dc-venue">NIC Cócteles · El Barrio · Alicante</div>
-                    <div className="lp-dc-status live">{lang === "es" ? "En vivo · acaba 22:00" : "Live now · ends 22:00"}</div>
-                  </div>
                 </div>
-                <div className="lp-dc-sm">
-                  <div className="lp-dc-sm-icon">🍺</div>
-                  <div>
-                    <div className="lp-dc-name">Cañas €1.50</div>
-                    <div className="lp-dc-venue">Bar Manero · Centro</div>
-                    <span className="lp-dc-badge">Happy Hour</span>
-                  </div>
-                </div>
-                <div className="lp-dc-sm">
-                  <div className="lp-dc-sm-icon">🍹</div>
-                  <div>
-                    <div className="lp-dc-name">Cocktails 2/€12</div>
-                    <div className="lp-dc-venue">Mirador · Old Town</div>
-                    <div className="lp-dc-status soon">⏰ {lang === "es" ? "Empieza 19:00" : "Starts 19:00"}</div>
+                {/* Deal card 2 */}
+                <div style={{margin:'0 10px 8px',background:'#111318',border:'1px solid #20242f',borderRadius:14,overflow:'hidden',display:'flex',gap:0}}>
+                  <div style={{width:72,flexShrink:0,background:'linear-gradient(160deg,#1a1510,#120d08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'2rem'}}>🍺</div>
+                  <div style={{padding:'9px 10px',flex:1,minWidth:0}}>
+                    <div style={{display:'flex',gap:4,marginBottom:5}}>
+                      <span style={{background:'#f59e0b',color:'#0b0d12',fontSize:'.45rem',fontWeight:700,padding:'2px 6px',borderRadius:20}}>Happy Hour</span>
+                    </div>
+                    <div style={{fontWeight:700,fontSize:'.72rem',color:'#efefef',marginBottom:2}}>Cañas €1.50</div>
+                    <div style={{fontSize:'.55rem',color:'#9496a3',marginBottom:5}}>Bar Manero · Centro</div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                      <span style={{fontSize:'.5rem',color:'#f59e0b'}}>⏰ {lang==="es"?"17:00–20:00":"17:00–20:00"}</span>
+                      <span style={{background:'#f97316',color:'#fff',fontSize:'.5rem',fontWeight:700,padding:'3px 8px',borderRadius:20}}>{lang==="es"?"Explorar":"Explore"}</span>
+                    </div>
                   </div>
                 </div>
               </div>
