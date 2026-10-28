@@ -1,699 +1,645 @@
-"use client";
+import type { Metadata } from "next";
 
-import { useState, useEffect } from "react";
-import { useLang } from "@/context/LanguageContext";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import DealCard from "@/components/DealCard";
-import CategoryFilter from "@/components/CategoryFilter";
-import BottomNav from "@/components/BottomNav";
-import { getDealsWithRestaurants, getDealById, getDistanceKm, getSunnyVenues, invalidateDealsCache, getRestaurantsWithDeals } from "@/lib/db";
-import { supabase } from "@/lib/supabase";
-import { DealCategory, DbDeal, DbRestaurant } from "@/lib/types";
-import { DealCardSkeletonList, LiveDealCardSkeleton } from "@/components/DealCardSkeleton";
-import OnboardingOverlay from "@/components/OnboardingOverlay";
-import { TouristBanner, TouristPicker, TouristGuide } from "@/components/TouristMode";
+export const metadata: Metadata = {
+  title: "Dealeo — Happy Hours & Live Deals in Alicante & Benidorm",
+  description: "Find the best happy hours, 2-for-1 drinks and live flash deals at bars in Alicante and Benidorm. Free to use, updated in real time.",
+  keywords: "happy hour alicante, deals benidorm, 2 for 1 drinks alicante, ofertas bares alicante, benidorm bar deals, happy hour benidorm",
+  openGraph: {
+    type: "website",
+    url: "https://www.dealeo.es",
+    title: "Dealeo — Happy Hours & Live Deals in Alicante & Benidorm",
+    description: "Find the best happy hours, 2-for-1 drinks and live flash deals at bars in Alicante and Benidorm. Free, real-time, no sign-up.",
+    images: [{ url: "https://www.dealeo.es/og-image.png" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dealeo — Happy Hours & Live Deals in Alicante & Benidorm",
+    description: "Find the best happy hours, 2-for-1 drinks and live flash deals at bars in Alicante and Benidorm.",
+    images: ["https://www.dealeo.es/og-image.png"],
+  },
+  alternates: { canonical: "https://www.dealeo.es" },
+};
 
-export default function Home() {
-  const { tr, lang } = useLang();
-  const L = (en: string, es: string, it: string) => lang === "es" ? es : lang === "it" ? it : en;
-  const router = useRouter();
-  const [category, setCategory] = useState<DealCategory>("all");
-  const [search, setSearch] = useState("");
-  const [neighborhood, setNeighborhood] = useState("all");
-  const [city, setCity] = useState("all");
-  const [deals, setDeals] = useState<DbDeal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [goingCounts, setGoingCounts] = useState<Record<string, number>>({});
-  const [sunnyVenues, setSunnyVenues] = useState<DbRestaurant[]>([]);
-  const [allVenues, setAllVenues] = useState<any[]>([]);
-  const [showTouristPicker, setShowTouristPicker] = useState(false);
-  const [touristDays, setTouristDays] = useState(0);
-
-  useEffect(() => {
-    getSunnyVenues().then(setSunnyVenues);
-    getRestaurantsWithDeals().then(setAllVenues);
-
-    const stored = localStorage.getItem("dealeo-tourist");
-    if (stored && stored !== "dismissed") setTouristDays(parseInt(stored));
-
-    getDealsWithRestaurants().then(async (data) => {
-      setDeals(data);
-      setLoading(false);
-      if (data.length > 0) {
-        const { data: goingData } = await supabase
-          .from("deal_going")
-          .select("deal_id")
-          .in("deal_id", data.map((d) => d.id));
-        const counts: Record<string, number> = {};
-        for (const g of goingData || []) {
-          counts[g.deal_id] = (counts[g.deal_id] || 0) + 1;
-        }
-        setGoingCounts(counts);
-      }
-    });
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => {}
-      );
-    }
-
-    // Realtime: update deals instantly when is_live changes or new live deal created
-    const channel = supabase
-      .channel("home-deals-realtime")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "deals" },
-        async (payload) => {
-          invalidateDealsCache();
-          const next = payload.new as DbDeal;
-          if (next.is_live && next.is_active) {
-            const full = await getDealById(next.id);
-            if (full) setDeals((d) => [full, ...d]);
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "deals" },
-        async (payload) => {
-          invalidateDealsCache();
-          const next = payload.new as DbDeal;
-          const prev = payload.old as Partial<DbDeal>;
-          if (next.is_live && !prev.is_live) {
-            const full = await getDealById(next.id);
-            if (full) {
-              setDeals((d) => {
-                const exists = d.find((x) => x.id === full.id);
-                if (exists) return d.map((x) => x.id === full.id ? full : x);
-                return [full, ...d];
-              });
-            }
-          } else if (!next.is_live && prev.is_live) {
-            setDeals((d) => d.map((x) => x.id === next.id ? { ...x, is_live: false } : x));
-          } else if (!next.is_active && prev.is_active) {
-            // Deactivated (e.g. sold out) — remove from list
-            setDeals((d) => d.filter((x) => x.id !== next.id));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, []);
-
-  // Sort by distance when location is available, and attach computed distance
-  const sortedDeals = userLocation
-    ? [...deals]
-        .map((d) => {
-          const distKm = d.restaurants?.latitude && d.restaurants?.longitude
-            ? getDistanceKm(userLocation.lat, userLocation.lng, d.restaurants.latitude, d.restaurants.longitude)
-            : null;
-          return { ...d, _distanceKm: distKm };
-        })
-        .sort((a, b) => {
-          if (a.is_live !== b.is_live) return a.is_live ? -1 : 1;
-          return (a._distanceKm ?? 999) - (b._distanceKm ?? 999);
-        })
-    : deals;
-
-  // Neighborhood filter
-  const neighborhoods = [...new Set(
-    deals.map((d) => d.restaurants?.neighborhood).filter(Boolean)
-  )].sort() as string[];
-
-  const cityDeals = city === "all"
-    ? sortedDeals
-    : sortedDeals.filter((d) => d.restaurants?.city === city);
-
-  const neighborhoodDeals = neighborhood === "all"
-    ? cityDeals
-    : cityDeals.filter((d) => d.restaurants?.neighborhood === neighborhood);
-
-  // Standing deal status helpers
-  const DAY_MAP = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const todayName = DAY_MAP[new Date().getDay()];
-  const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-  const isValidToday = (d: DbDeal) => !d.valid_days?.length || d.valid_days.includes(todayName);
-
-  // A deal is "effectively live" if manually activated OR it's a standing deal active right now
-  const isStandingLiveNow = (d: DbDeal) => {
-    if (!d.valid_from) return false;
-    if (!isValidToday(d)) return false;
-    const [fh, fm] = d.valid_from.split(":").map(Number);
-    if (nowMins < fh * 60 + fm) return false;
-    if (d.valid_to) {
-      const [th, tm] = d.valid_to.split(":").map(Number);
-      if (nowMins >= th * 60 + tm) return false;
-    }
-    return true;
-  };
-
-  // is_live=true means manually activated, but still respect valid_to/valid_from if set
-  const isEffectiveLive = (d: DbDeal) => {
-    if (d.is_live) {
-      if (d.valid_from && isValidToday(d)) {
-        const [fh, fm] = d.valid_from.split(":").map(Number);
-        if (nowMins < fh * 60 + fm) return false;
-      }
-      if (d.valid_to && isValidToday(d)) {
-        const [th, tm] = d.valid_to.split(":").map(Number);
-        if (nowMins >= th * 60 + tm) return false;
-      }
-      return true;
-    }
-    return isStandingLiveNow(d);
-  };
-
-  const liveDeals = neighborhoodDeals.filter((d) => isEffectiveLive(d));
-  const laterTodayDeals = neighborhoodDeals.filter((d) => {
-    if (!d.valid_from || d.is_live) return false;
-    if (!isValidToday(d)) return false;
-    const [fh, fm] = d.valid_from.split(":").map(Number);
-    return nowMins < fh * 60 + fm;
-  }).sort((a, b) => {
-    const [ah, am] = a.valid_from!.split(":").map(Number);
-    const [bh, bm] = b.valid_from!.split(":").map(Number);
-    return (ah * 60 + am) - (bh * 60 + bm);
-  });
-  const laterTodayIds = new Set(laterTodayDeals.map((d) => d.id));
-
-  // Ending soon: valid deals whose valid_to is within the next 90 minutes
-  const endingSoonDeals = neighborhoodDeals.filter((d) => {
-    if (!d.valid_to || !isValidToday(d)) return false;
-    const [th, tm] = d.valid_to.split(":").map(Number);
-    const toMins = th * 60 + tm;
-    return toMins > nowMins && toMins - nowMins <= 90;
-  });
-
-  const liveIds = new Set(liveDeals.map((d) => d.id));
-  const happyHourDeals = neighborhoodDeals.filter((d) => d.category === "happyHour" && !liveIds.has(d.id) && !laterTodayIds.has(d.id));
-  const experiencesDeals = neighborhoodDeals.filter((d) => d.category === "experiences" && !liveIds.has(d.id) && !laterTodayIds.has(d.id));
-  const nightlifeDeals = neighborhoodDeals.filter((d) => d.category === "nightlife" && !liveIds.has(d.id));
-  const trendingDeals = neighborhoodDeals.filter((d) => !liveIds.has(d.id) && d.category !== "happyHour" && d.category !== "experiences" && d.category !== "nightlife" && !laterTodayIds.has(d.id) && isValidToday(d)).slice(0, 6);
-
-  const filteredDeals = neighborhoodDeals.filter((deal) => {
-    const matchesCategory =
-      category === "all" ||
-      deal.category === category ||
-      (category === "live" && deal.is_live);
-    const matchesSearch =
-      search === "" ||
-      deal.restaurants?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      deal.title?.toLowerCase().includes(search.toLowerCase()) ||
-      deal.title_es?.toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const showSections = category === "all" && search === "";
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#0f1117]">
-      <OnboardingOverlay />
-      <Header />
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" />
+      <style>{`
+:root {
+  --bg:#0b0d12; --s1:#111318; --s2:#181b24; --s3:#1e2230;
+  --fg:#efefef; --fg-2:#9496a3; --fg-3:#55586a;
+  --orange:#f97316; --teal:#0d9488; --amber:#f59e0b;
+  --border:#20242f; --green:#4ade80;
+  --fd:'Barlow Condensed',system-ui,sans-serif;
+  --fb:'DM Sans',system-ui,sans-serif;
+  color-scheme:dark;
+}
+@media(prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --bg:#f7f7f9;--s1:#eeeef3;--s2:#e4e5ed;--s3:#d8dae6;
+    --fg:#0b0d12;--fg-2:#50536a;--fg-3:#9496a3;--border:#d0d3e2;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f7f7f9;--s1:#eeeef3;--s2:#e4e5ed;--s3:#d8dae6;
+  --fg:#0b0d12;--fg-2:#50536a;--fg-3:#9496a3;--border:#d0d3e2;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--fb);font-size:16px;line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+.lp-wrap{max-width:1080px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.lp-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--fb);font-weight:600;font-size:.9rem;border:none;border-radius:100px;padding:12px 24px;cursor:pointer;transition:opacity .15s,transform .15s;white-space:nowrap;text-decoration:none}
+.lp-btn:hover{opacity:.85;transform:translateY(-1px)}
+.lp-btn-orange{background:var(--orange);color:#fff}
+.lp-btn-outline{background:transparent;color:var(--fg-2);border:1.5px solid var(--border)}
+.lp-btn-lg{font-size:1rem;padding:15px 30px}
+/* NAV */
+.lp-nav{position:sticky;top:0;z-index:200;background:rgba(11,13,18,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding-block:14px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.lp-nav-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.lp-logo{font-family:var(--fd);font-weight:900;font-size:1.6rem;letter-spacing:-.01em;color:var(--orange);display:flex;align-items:center;gap:9px}
+.lp-logo em{font-style:normal;color:var(--teal)}
+.lp-nav-r{display:flex;align-items:center;gap:10px}
+/* HERO */
+.lp-hero{padding-block:90px 60px;position:relative;overflow:hidden}
+.lp-hero-glow{position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:800px;height:600px;background:radial-gradient(ellipse at top,rgba(249,115,22,.13) 0%,transparent 65%);pointer-events:none}
+.lp-hero-grid{display:grid;grid-template-columns:1fr 420px;align-items:center;gap:64px}
+.lp-hero-kicker{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:22px}
+.lp-hero-kicker::before{content:"";width:20px;height:2px;background:var(--orange);border-radius:2px}
+.lp-h1{font-family:var(--fd);font-weight:900;font-size:clamp(3rem,6.5vw,5rem);line-height:.97;letter-spacing:-.02em;text-wrap:balance;margin-bottom:26px}
+.lp-h1 .hi{color:var(--orange)}
+.lp-h1 .lo{color:var(--fg-2)}
+.lp-hero-sub{font-size:1.1rem;color:var(--fg-2);max-width:44ch;line-height:1.7;margin-bottom:36px}
+.lp-hero-sub strong{color:var(--fg);font-weight:600}
+.lp-hero-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:28px}
+.lp-hero-trust{display:flex;flex-wrap:wrap;gap:18px}
+.lp-trust-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--fg-3)}
+.lp-trust-item::before{content:"✓";color:var(--orange);font-weight:700;font-size:.85rem}
+/* PHONE */
+.lp-phone-outer{position:relative;display:flex;justify-content:center}
+.lp-phone-glow{position:absolute;inset:-30px;border-radius:60px;background:radial-gradient(circle,rgba(249,115,22,.12) 0%,transparent 70%);pointer-events:none}
+.lp-phone{width:260px;border-radius:40px;border:2px solid var(--border);background:var(--s1);overflow:hidden;box-shadow:0 50px 100px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04);position:relative;z-index:1}
+.lp-pill-wrap{height:30px;background:var(--s1);display:flex;justify-content:center;align-items:flex-start;padding-top:7px}
+.lp-pill{width:64px;height:10px;background:var(--bg);border-radius:10px}
+.lp-p-top{padding:8px 14px 6px;display:flex;justify-content:space-between;align-items:center}
+.lp-p-top-title{font-family:var(--fd);font-weight:800;font-size:.95rem;letter-spacing:-.01em;color:var(--fg)}
+.lp-live-dot{display:flex;align-items:center;gap:5px;background:#ef4444;color:#fff;font-size:.58rem;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:20px}
+.lp-live-dot::before{content:"";width:5px;height:5px;border-radius:50%;background:#fff;animation:lp-blink 1.3s infinite}
+@keyframes lp-blink{0%,100%{opacity:1}50%{opacity:.3}}
+.lp-p-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 14px;margin-bottom:8px}
+.lp-p-tab{font-size:.62rem;font-weight:600;padding:5px 10px;color:var(--fg-3);border-bottom:2px solid transparent;cursor:default}
+.lp-p-tab.on{color:var(--orange);border-bottom-color:var(--orange)}
+.lp-dc{margin:4px 12px 8px;background:var(--s2);border-radius:16px;border:1px solid var(--border);overflow:hidden}
+.lp-dc-img{height:86px;background:linear-gradient(135deg,#1a2035 0%,#0d1120 100%);display:flex;align-items:center;justify-content:center;font-size:2.4rem;position:relative}
+.lp-dc-tag{position:absolute;top:7px;left:8px;background:var(--orange);color:#fff;font-size:.56rem;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:20px;text-transform:uppercase}
+.lp-dc-tag.amber{background:var(--amber);color:#0b0d12}
+.lp-dc-body{padding:9px 12px 12px}
+.lp-dc-name{font-family:var(--fd);font-weight:700;font-size:.85rem;letter-spacing:-.01em;color:var(--fg);margin-bottom:2px}
+.lp-dc-venue{font-size:.62rem;color:var(--fg-2);margin-bottom:6px}
+.lp-dc-status{font-size:.6rem;font-weight:600;display:flex;align-items:center;gap:4px}
+.lp-dc-status.live{color:var(--green)}
+.lp-dc-status.live::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--green);animation:lp-blink 1.3s infinite}
+.lp-dc-status.soon{color:var(--amber)}
+.lp-dc-sm{margin:0 12px 8px;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:9px 11px;display:flex;gap:9px;align-items:center}
+.lp-dc-sm-icon{width:36px;height:36px;border-radius:9px;background:rgba(249,115,22,.12);display:grid;place-items:center;font-size:1.2rem;flex-shrink:0}
+.lp-dc-badge{display:inline-block;margin-top:3px;background:rgba(249,115,22,.12);color:var(--orange);font-size:.52rem;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:20px;text-transform:uppercase}
+/* TICKER */
+.lp-ticker{border-block:1px solid var(--border);background:var(--s1);padding-block:12px;overflow:hidden}
+.lp-t-track{display:flex;white-space:nowrap;animation:lp-tick 24s linear infinite;width:max-content}
+.lp-t-track:hover{animation-play-state:paused}
+@keyframes lp-tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.lp-t-item{display:inline-flex;align-items:center;gap:10px;padding:0 24px;font-size:.74rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--fg-3)}
+.lp-t-item b{color:var(--orange);font-weight:700}
+/* BUCKETS */
+.lp-buckets{padding-block:80px;background:var(--s1);border-bottom:1px solid var(--border)}
+.lp-bucket-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:24px;overflow:hidden;border:1px solid var(--border)}
+.lp-bucket{background:var(--bg);padding:48px 40px;position:relative;overflow:hidden}
+.lp-bucket::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 80%,rgba(249,115,22,.07) 0%,transparent 60%);pointer-events:none}
+.lp-bucket-num{font-family:var(--fd);font-weight:900;font-size:clamp(3.5rem,7vw,6rem);line-height:1;letter-spacing:-.03em;color:var(--orange);opacity:.18;margin-bottom:-20px}
+.lp-bucket-title{font-family:var(--fd);font-weight:900;font-size:clamp(2rem,4vw,3rem);line-height:1;letter-spacing:-.02em;color:var(--fg);margin-bottom:18px;position:relative}
+.lp-bucket-title em{font-style:normal;color:var(--orange)}
+.lp-bucket p{font-size:.95rem;color:var(--fg-2);line-height:1.7;margin-bottom:20px;max-width:36ch}
+.lp-bucket-items{display:flex;flex-direction:column;gap:8px}
+.lp-bucket-item{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--fg-2)}
+.lp-bucket-item::before{content:"→";color:var(--orange);font-weight:700;flex-shrink:0}
+/* STATS */
+.lp-stats{padding-block:70px}
+.lp-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.lp-stat{background:var(--s1);padding:40px 32px;text-align:center}
+.lp-stat-n{font-family:var(--fd);font-weight:900;font-size:clamp(2.8rem,6vw,4rem);letter-spacing:-.04em;line-height:1;color:var(--fg);margin-bottom:6px}
+.lp-stat-n em{font-style:normal;color:var(--orange)}
+.lp-stat-l{font-size:.82rem;color:var(--fg-2)}
+/* FEATURES */
+.lp-features{padding-block:20px 80px}
+.lp-feat-label{font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:14px}
+.lp-h2{font-family:var(--fd);font-weight:900;font-size:clamp(2rem,4.5vw,3.2rem);letter-spacing:-.02em;line-height:1.05;text-wrap:balance;margin-bottom:56px}
+.lp-feat-block{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:24px;overflow:hidden;margin-bottom:16px}
+.lp-feat-block.flip .lp-feat-text{order:2}
+.lp-feat-block.flip .lp-feat-visual{order:1}
+.lp-feat-text{padding:48px 44px;display:flex;flex-direction:column;justify-content:center}
+.lp-feat-icon{width:52px;height:52px;border-radius:14px;background:rgba(249,115,22,.1);display:grid;place-items:center;font-size:1.6rem;margin-bottom:22px}
+.lp-feat-text h3{font-family:var(--fd);font-weight:800;font-size:1.6rem;letter-spacing:-.02em;line-height:1.1;margin-bottom:14px}
+.lp-feat-text p{font-size:.93rem;color:var(--fg-2);line-height:1.7;max-width:38ch}
+.lp-feat-visual{background:var(--s1);border-left:1px solid var(--border);display:flex;align-items:center;justify-content:center;min-height:260px;padding:32px;position:relative;overflow:hidden}
+.lp-feat-block.flip .lp-feat-visual{border-left:none;border-right:1px solid var(--border)}
+.lp-fvc{background:var(--s2);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:240px}
+.lp-fvc-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.lp-fvc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.lp-fvc-bar{height:8px;border-radius:4px;background:var(--s3);flex:1}
+.lp-fvc-bar-fill{height:100%;border-radius:4px;background:var(--orange)}
+.lp-fvc-label{font-size:.65rem;color:var(--fg-2);min-width:60px;text-align:right}
+.lp-map-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%}
+.lp-map-dot{aspect-ratio:1;border-radius:6px;background:var(--s3);display:grid;place-items:center;font-size:.9rem}
+.lp-map-dot.on{background:rgba(249,115,22,.15)}
+.lp-map-dot.live{background:rgba(74,222,128,.12)}
+/* CITIES */
+.lp-cities{padding-block:80px;background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.lp-city-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.lp-city-card{border-radius:22px;border:1px solid var(--border);padding:44px 38px;background:var(--bg);transition:border-color .2s;position:relative;overflow:hidden}
+.lp-city-card:hover{border-color:rgba(249,115,22,.4)}
+.lp-city-emoji{font-size:5rem;position:absolute;bottom:-10px;right:16px;opacity:.1;pointer-events:none;line-height:1}
+.lp-city-chip{display:inline-block;background:rgba(249,115,22,.1);color:var(--orange);font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:18px}
+.lp-city-card h3{font-family:var(--fd);font-weight:900;font-size:2.2rem;letter-spacing:-.03em;margin-bottom:12px;line-height:1}
+.lp-city-card p{font-size:.9rem;color:var(--fg-2);line-height:1.65;max-width:30ch;margin-bottom:24px}
+.lp-city-meta{font-size:.78rem;color:var(--fg-3);font-weight:500}
+.lp-city-meta strong{color:var(--fg);font-weight:600}
+/* TRUST */
+.lp-trust{padding-block:80px}
+.lp-trust-inner{background:var(--s1);border:1px solid var(--border);border-radius:24px;padding:56px 52px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.lp-trust-label{display:inline-flex;align-items:center;gap:8px;background:rgba(74,222,128,.08);color:var(--green);font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:22px;border:1px solid rgba(74,222,128,.15)}
+.lp-trust-items{display:flex;flex-direction:column;gap:20px}
+.lp-trust-item-b{display:flex;gap:14px;align-items:flex-start}
+.lp-t-icon{width:44px;height:44px;border-radius:12px;background:rgba(249,115,22,.08);display:grid;place-items:center;font-size:1.3rem;flex-shrink:0;border:1px solid rgba(249,115,22,.12)}
+.lp-t-content h4{font-family:var(--fd);font-weight:700;font-size:1rem;letter-spacing:-.01em;margin-bottom:4px}
+.lp-t-content p{font-size:.85rem;color:var(--fg-2);line-height:1.6}
+/* REVIEWS */
+.lp-reviews{padding-block:80px;background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.lp-reviews-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;flex-wrap:wrap;gap:16px}
+.lp-reviews-aside{font-size:.8rem;color:var(--fg-3);font-style:italic;max-width:28ch;text-align:right}
+.lp-review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.lp-review-card{background:var(--bg);border:1px solid var(--border);border-radius:18px;padding:26px 22px}
+.lp-review-stars{color:var(--amber);font-size:.85rem;letter-spacing:2px;margin-bottom:14px}
+.lp-review-text{font-size:.9rem;color:var(--fg);line-height:1.65;margin-bottom:16px;font-style:italic}
+.lp-review-author{font-size:.75rem;color:var(--fg-3);font-weight:600}
+/* FOR BARS */
+.lp-for-bars{padding-block:90px;border-top:1px solid var(--border)}
+.lp-for-bars-inner{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.lp-fbs-steps{display:flex;flex-direction:column;gap:16px;margin-bottom:8px}
+.lp-fbs-item{display:flex;gap:14px;align-items:flex-start}
+.lp-fbs-num{width:32px;height:32px;border-radius:10px;background:rgba(13,148,136,.12);color:var(--teal);font-family:var(--fd);font-weight:900;font-size:1rem;display:grid;place-items:center;flex-shrink:0;border:1px solid rgba(13,148,136,.2)}
+.lp-fbs-item strong{font-size:.88rem;font-weight:700;display:block;margin-bottom:3px}
+.lp-fbs-item p{font-size:.8rem;color:var(--fg-2);line-height:1.5;margin:0}
+.lp-fbv-card{background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:300px}
+.lp-fbv-stat-row{display:flex;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.lp-fbv-stat{flex:1;text-align:center;padding:10px 8px;border-right:1px solid var(--border);font-size:.68rem;color:var(--fg-3);display:flex;flex-direction:column;gap:3px}
+.lp-fbv-stat:last-child{border-right:none}
+.lp-fbv-stat-n{font-family:var(--fd);font-weight:900;font-size:1.3rem;color:var(--fg);line-height:1}
+/* CTA */
+.lp-cta{padding-block:110px;text-align:center;position:relative;overflow:hidden}
+.lp-cta::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(249,115,22,.12) 0%,transparent 60%);pointer-events:none}
+.lp-cta-sub{font-family:var(--fd);font-weight:700;font-size:clamp(1.4rem,3vw,2rem);color:var(--fg-2);letter-spacing:-.01em;margin-bottom:40px}
+.lp-cta-btns{display:flex;justify-content:center;flex-wrap:wrap;gap:14px;margin-bottom:20px}
+.lp-cta-note{font-size:.8rem;color:var(--fg-3)}
+/* FOOTER */
+.lp-footer{border-top:1px solid var(--border);padding-block:28px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-bottom:max(20px,env(safe-area-inset-bottom,0px))}
+.lp-footer-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.lp-footer-copy{font-size:.78rem;color:var(--fg-3)}
+.lp-footer-links{display:flex;gap:20px}
+.lp-footer-links a{font-size:.78rem;color:var(--fg-3);transition:color .15s}
+.lp-footer-links a:hover{color:var(--fg)}
+/* FADE UP */
+.lp-fade{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+.lp-fade.visible{opacity:1;transform:translateY(0)}
+.lp-fade.d1{transition-delay:.08s}
+.lp-fade.d2{transition-delay:.16s}
+.lp-fade.d3{transition-delay:.24s}
+@media(prefers-reduced-motion:reduce){
+  .lp-t-track,.lp-live-dot::before,.lp-dc-status.live::before{animation:none}
+  .lp-fade{opacity:1;transform:none;transition:none}
+}
+/* RESPONSIVE */
+@media(max-width:800px){
+  .lp-hero-grid{grid-template-columns:1fr;gap:44px;text-align:center}
+  .lp-hero-kicker{justify-content:center}
+  .lp-hero-sub{margin-inline:auto}
+  .lp-hero-actions{justify-content:center}
+  .lp-hero-trust{justify-content:center}
+  .lp-phone-outer{order:-1}
+  .lp-bucket-grid{grid-template-columns:1fr}
+  .lp-stats-grid{grid-template-columns:1fr}
+  .lp-feat-block{grid-template-columns:1fr}
+  .lp-feat-visual{display:none}
+  .lp-feat-block.flip .lp-feat-text,.lp-feat-block.flip .lp-feat-visual{order:unset}
+  .lp-city-grid{grid-template-columns:1fr}
+  .lp-review-grid{grid-template-columns:1fr}
+  .lp-trust-inner{grid-template-columns:1fr;gap:36px;padding:36px 28px}
+  .lp-reviews-aside{text-align:left}
+  .lp-for-bars-inner{grid-template-columns:1fr;gap:44px}
+  .lp-footer-inner{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:480px){
+  .lp-h1{font-size:2.6rem}
+  .lp-h2{font-size:1.75rem}
+  .lp-phone{width:220px}
+  .lp-bucket{padding:32px 24px}
+}
+      `}</style>
 
-      {/* ── Hero banner ───────────────────────────────────────────────────── */}
-      <section className="w-full bg-[#0D2B35]">
-        <div className="max-w-6xl mx-auto px-5 md:px-8 py-10 md:py-16 flex flex-col md:flex-row items-center gap-8 md:gap-12">
-          {/* Left: copy */}
-          <div className="flex-1 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 bg-teal-900/50 border border-teal-700/50 text-teal-300 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-              🔴 {L("Live deals updating now", "Ofertas en vivo ahora", "Offerte live adesso")}
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">
-              {L("Great drinks.", "Grandes bebidas.", "Ottimi drink.")}
-            </h1>
-            <h1 className="text-4xl md:text-5xl font-black leading-tight mb-3">
-              <span className="text-orange-500">{L("Better", "Mejores", "Migliori")}</span>
-              <span className="text-white"> {L("deals.", "ofertas.", "offerte.")}</span>
-            </h1>
-            <div className="mb-4 h-1 w-24 rounded-full bg-orange-500 opacity-80 mx-auto md:mx-0" />
-            <p className="text-gray-300 text-base md:text-lg mb-6 max-w-lg mx-auto md:mx-0">
-              {L("Happy hours, 2-for-1 drinks, food deals and live flash offers at bars across ", "Happy hours, bebidas 2x1, ofertas de comida y flash deals en bares de ", "Happy hour, drink 2x1, offerte cibo e flash deal nei bar di ")}
-              <span className="text-teal-400 font-bold">Alicante &amp; Benidorm</span>
-            </p>
-            {/* CTAs */}
-            <div className="flex gap-3 mb-6 flex-wrap justify-center md:justify-start">
-              <a href="/deals" className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-full transition-colors flex items-center gap-2 text-sm">
-                {L("Browse Deals →", "Ver Ofertas →", "Scopri Offerte →")}
-              </a>
-              <a
-                href="https://play.google.com/store/apps/details?id=es.dealeo.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-white/10 border border-white/20 text-white font-bold px-5 py-3 rounded-full hover:bg-white/20 transition-colors text-sm"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#34a853"><path d="M3 20.5v-17c0-.83 1-1.29 1.6-.71l14 8.5c.53.32.53 1.1 0 1.42l-14 8.5c-.6.58-1.6.12-1.6-.71z"/></svg>
-                {L("Get the App", "Descargar", "Scarica")}
-              </a>
-            </div>
-            {/* How it works — 3 steps */}
-            <div className="flex gap-4 flex-wrap justify-center md:justify-start text-xs text-gray-400">
-              <span className="flex items-center gap-1.5"><span className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 font-black flex items-center justify-center text-[10px]">1</span>{L("Open the app", "Abre la app", "Apri l'app")}</span>
-              <span className="text-gray-600">→</span>
-              <span className="flex items-center gap-1.5"><span className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 font-black flex items-center justify-center text-[10px]">2</span>{L("Find a live deal nearby", "Encuentra una oferta cerca", "Trova un'offerta vicina")}</span>
-              <span className="text-gray-600">→</span>
-              <span className="flex items-center gap-1.5"><span className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 font-black flex items-center justify-center text-[10px]">3</span>{L("Show & redeem", "Muestra y canjea", "Mostra e riscatta")}</span>
-            </div>
-          </div>
-          {/* Right: cocktail image — desktop only */}
-          <div className="hidden md:flex flex-1 flex-col items-end gap-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/hero-drinks.jpg.png.png"
-              alt="Cocktails"
-              className="w-full max-w-lg object-cover rounded-xl"
-              style={{ maxHeight: "380px", objectPosition: "center top" }}
-            />
+      {/* NAV */}
+      <nav className="lp-nav">
+        <div className="lp-nav-inner">
+          <a href="/" className="lp-logo">
+            <span>Deal<em>eo</em></span>
+          </a>
+          <div className="lp-nav-r">
+            <a href="/deals" className="lp-btn lp-btn-outline">Open app</a>
+            <a href="https://play.google.com/store/apps/details?id=es.dealeo.app" className="lp-btn lp-btn-orange">Download free</a>
           </div>
         </div>
-        {/* Stats bar */}
-        <div className="bg-[#0A2028] py-3">
-          <div className="max-w-6xl mx-auto px-4 flex justify-center gap-8 md:gap-16 text-xs md:text-sm text-gray-400 flex-wrap">
-            <span className="flex items-center gap-1.5"><span className="text-orange-400 font-black">157+</span> {L("venues", "locales", "locali")}</span>
-            <span className="flex items-center gap-1.5"><span className="text-orange-400 font-black">2</span> {L("cities", "ciudades", "città")}</span>
-            <span className="flex items-center gap-1.5"><span className="text-orange-400 font-black">0€</span> {L("to use", "para usar", "per usare")}</span>
-            <span className="flex items-center gap-1.5">✅ {L("Updated daily", "Actualizado cada día", "Aggiornato ogni giorno")}</span>
+      </nav>
+
+      {/* HERO */}
+      <section className="lp-hero">
+        <div className="lp-hero-glow" />
+        <div className="lp-wrap">
+          <div className="lp-hero-grid">
+            <div>
+              <div className="lp-hero-kicker">Alicante &amp; Benidorm · Live now</div>
+              <h1 className="lp-h1">
+                You&apos;re paying<br />
+                <span className="hi">too much</span><br />
+                <span className="lo">for that beer.</span>
+              </h1>
+              <p className="lp-hero-sub">
+                Dealeo shows you every <strong>happy hour, 2-for-1 and live deal</strong> at 157 bars in Alicante and Benidorm. Updated in real time. Completely free.
+              </p>
+              <div className="lp-hero-actions">
+                <a href="https://play.google.com/store/apps/details?id=es.dealeo.app" className="lp-btn lp-btn-orange lp-btn-lg">Find tonight&apos;s deals</a>
+                <a href="/deals" className="lp-btn lp-btn-outline lp-btn-lg">Open in browser →</a>
+              </div>
+              <div className="lp-hero-trust">
+                <span className="lp-trust-item">Free forever</span>
+                <span className="lp-trust-item">No sign-up</span>
+                <span className="lp-trust-item">Works right now</span>
+              </div>
+            </div>
+            <div className="lp-phone-outer">
+              <div className="lp-phone-glow" />
+              <div className="lp-phone">
+                <div className="lp-pill-wrap"><div className="lp-pill" /></div>
+                <div className="lp-p-top">
+                  <span className="lp-p-top-title">dealeo</span>
+                  <span className="lp-live-dot">LIVE</span>
+                </div>
+                <div className="lp-p-tabs">
+                  <div className="lp-p-tab on">All</div>
+                  <div className="lp-p-tab">Happy Hour</div>
+                  <div className="lp-p-tab">2-for-1</div>
+                </div>
+                <div className="lp-dc">
+                  <div className="lp-dc-img">
+                    🍻
+                    <span className="lp-dc-tag">2-for-1</span>
+                  </div>
+                  <div className="lp-dc-body">
+                    <div className="lp-dc-name">2-for-1 Gin Tonics</div>
+                    <div className="lp-dc-venue">NIC Cócteles · El Barrio · Alicante</div>
+                    <div className="lp-dc-status live">Live now · ends 22:00</div>
+                  </div>
+                </div>
+                <div className="lp-dc-sm">
+                  <div className="lp-dc-sm-icon">🍺</div>
+                  <div>
+                    <div className="lp-dc-name">Cañas €1.50</div>
+                    <div className="lp-dc-venue">Bar Manero · Centro</div>
+                    <span className="lp-dc-badge">Happy Hour</span>
+                  </div>
+                </div>
+                <div className="lp-dc-sm">
+                  <div className="lp-dc-sm-icon">🍹</div>
+                  <div>
+                    <div className="lp-dc-name">Cocktails 2/€12</div>
+                    <div className="lp-dc-venue">Mirador · Old Town</div>
+                    <div className="lp-dc-status soon">⏰ Starts 19:00</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── For venue owners strip ───────────────────────────────────────── */}
-      <div className="bg-gray-900 border-b border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
-          <p className="text-xs text-gray-500">
-            🏢 {L("Own a bar or restaurant?", "¿Tienes un bar o restaurante?", "Hai un bar o ristorante?")}
-          </p>
-          <a href="/business" className="text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors whitespace-nowrap">
-            {L("List your venue free →", "Añadir tu local gratis →", "Aggiungi il tuo locale →")}
-          </a>
+      {/* TICKER */}
+      <div className="lp-ticker">
+        <div className="lp-t-track">
+          {[
+            { label: "Happy Hour", val: "17:00–20:00" },
+            { label: "2-for-1 Drinks", val: "157 bars" },
+            { label: "Live Deals", val: "Right now" },
+            { label: "Alicante", val: "44 venues" },
+            { label: "Benidorm", val: "113 venues" },
+            { label: "Free forever", val: "No sign-up" },
+            { label: "Happy Hour", val: "17:00–20:00" },
+            { label: "2-for-1 Drinks", val: "157 bars" },
+            { label: "Live Deals", val: "Right now" },
+            { label: "Alicante", val: "44 venues" },
+            { label: "Benidorm", val: "113 venues" },
+            { label: "Free forever", val: "No sign-up" },
+          ].map((item, i) => (
+            <span key={i} className="lp-t-item"><b>{item.label}</b> {item.val}</span>
+          ))}
         </div>
       </div>
 
-      <main className="max-w-2xl mx-auto px-4 pb-24">
-        {/* Search bar */}
-        <div className="py-4">
-          <div className="relative">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={L("Find the best deals...", "Buscar las mejores ofertas...", "Cerca le migliori offerte...")}
-              className="w-full bg-gray-800 border border-gray-700 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-900 shadow-sm"
-            />
-          </div>
-        </div>
-
-        {/* Category filter */}
-        <div className="mb-3">
-          <CategoryFilter selected={category} onChange={setCategory} />
-        </div>
-
-        {/* City toggle */}
-        <div className="flex items-center gap-2 mb-3">
-          {["all", "Alicante", "Benidorm"].map((c) => (
-            <button
-              key={c}
-              onClick={() => { setCity(c); setNeighborhood("all"); }}
-              className={`text-sm font-bold px-4 py-2 rounded-full transition-colors ${
-                city === c ? "bg-orange-500 text-white" : "bg-gray-800 text-gray-300 border border-gray-700"
-              }`}
-            >
-              {c === "all" ? L("All", "Todos", "Tutti") : c}
-            </button>
-          ))}
-        </div>
-
-        {/* Neighborhood filter */}
-        {!loading && neighborhoods.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-            <button
-              onClick={() => setNeighborhood("all")}
-              className={`flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
-                neighborhood === "all" ? "bg-white text-gray-900" : "bg-gray-800 text-gray-300 border border-gray-700"
-              }`}
-            >
-              {L("All areas", "Todos", "Tutte le zone")}
-            </button>
-            {neighborhoods.map((n) => (
-              <button
-                key={n}
-                onClick={() => setNeighborhood(neighborhood === n ? "all" : n)}
-                className={`flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
-                  neighborhood === n ? "bg-teal-600 text-white" : "bg-gray-800 text-gray-300 border border-gray-700"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Tourist mode picker modal */}
-        {showTouristPicker && (
-          <TouristPicker onDone={(days) => {
-            setShowTouristPicker(false);
-            if (days > 0) {
-              localStorage.setItem("dealeo-tourist", String(days));
-              setTouristDays(days);
-            }
-          }} />
-        )}
-
-        {/* Loading skeletons */}
-        {loading && <DealCardSkeletonList count={4} />}
-
-        {/* Tourist guide — replaces normal sections */}
-        {!loading && touristDays > 0 && showSections && (
-          <TouristGuide deals={deals} goingCounts={goingCounts} />
-        )}
-
-        {!loading && showSections && touristDays === 0 && (
-          <TouristBanner onActivate={() => setShowTouristPicker(true)} />
-        )}
-
-        {!loading && showSections && touristDays === 0 && (
-          <>
-            {/* Location indicator */}
-            {userLocation && (
-              <div className="flex items-center gap-1.5 mb-4 text-xs text-gray-400">
-                <span>📍</span>
-                <span>{L("Sorted by distance from your location", "Ordenado por distancia a tu ubicación", "Ordinato per distanza dalla tua posizione")}</span>
-              </div>
-            )}
-
-            {/* Live Deals Banner */}
-            {liveDeals.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                    <h2 className="font-bold text-white">{L("Live Deals", "Ofertas en vivo", "Offerte in Diretta")}</h2>
-                  </div>
-                  <span className="text-xs text-gray-400">{L("Near you", "Cerca de ti", "Vicino a te")}</span>
-                </div>
-                <div className="grid gap-3">
-                  {liveDeals.map((deal) => (
-                    <DealCard key={deal.id} deal={deal} fromDb goingCount={goingCounts[deal.id]} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Ending Soon */}
-            {endingSoonDeals.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-base">⌛</span>
-                  <h2 className="font-bold text-white">{L("Ending Soon", "Terminan pronto", "In Scadenza")}</h2>
-                </div>
-                <div className="grid gap-3">
-                  {endingSoonDeals.map((deal) => {
-                    const [th, tm] = deal.valid_to!.split(":").map(Number);
-                    const minsLeft = (th * 60 + tm) - nowMins;
-                    return (
-                      <div key={deal.id} className="relative">
-                        <DealCard deal={deal} fromDb goingCount={goingCounts[deal.id]} />
-                        <span className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                          {minsLeft < 60
-                            ? `${minsLeft}m left`
-                            : `${Math.floor(minsLeft / 60)}h ${minsLeft % 60}m left`}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Later Today */}
-            {laterTodayDeals.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">⏰</span>
-                    <h2 className="font-bold text-white">{L("Later Today", "Más tarde hoy", "Più Tardi Oggi")}</h2>
-                  </div>
-                </div>
-                <div className="grid gap-3">
-                  {laterTodayDeals.map((deal) => (
-                    <DealCard key={deal.id} deal={deal} fromDb goingCount={goingCounts[deal.id]} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Trending Tonight */}
-            {trendingDeals.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-bold text-white">{L("Trending Tonight", "Destacado esta noche", "Di Tendenza Stasera")}</h2>
-                  <button onClick={() => router.push("/deals")} className="text-xs text-teal-600 font-medium">{L("See all", "Ver todo", "Vedi tutto")}</button>
-                </div>
-                <div className="grid gap-3">
-                  {trendingDeals.map((deal) => (
-                    <DealCard key={deal.id} deal={deal} fromDb goingCount={goingCounts[deal.id]} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Sunny Terraces & Spots — horizontal venue scroll */}
-            {/* Happy Hour Specials */}
-            {happyHourDeals.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-bold text-white">{L("Happy Hour Specials", "Especiales Happy Hour", "Speciali Happy Hour")}</h2>
-                  <button onClick={() => router.push("/deals?category=happyHour")} className="text-xs text-teal-600 font-medium">{L("See all", "Ver todo", "Vedi tutto")}</button>
-                </div>
-                <div className="grid gap-3">
-                  {happyHourDeals.map((deal) => (
-                    <DealCard key={deal.id} deal={deal} fromDb goingCount={goingCounts[deal.id]} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Experiences */}
-            {experiencesDeals.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-bold text-white">{L("Experiences", "Experiencias", "Esperienze")}</h2>
-                  <button onClick={() => router.push("/deals?category=experiences")} className="text-xs text-teal-600 font-medium">{L("See all", "Ver todo", "Vedi tutto")}</button>
-                </div>
-                <div className="grid gap-3">
-                  {experiencesDeals.map((deal) => (
-                    <DealCard key={deal.id} deal={deal} fromDb goingCount={goingCounts[deal.id]} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Nightlife */}
-            {nightlifeDeals.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">🌙</span>
-                    <h2 className="font-bold text-white">{L("Nightlife", "Nocturno", "Vita Notturna")}</h2>
-                  </div>
-                  <button onClick={() => { setCategory("nightlife"); }} className="text-xs text-teal-600 font-medium">
-                    {L("See all", "Ver todo", "Vedi tutto")}
-                  </button>
-                </div>
-                <div className="grid gap-3">
-                  {nightlifeDeals.slice(0, 4).map((deal) => (
-                    <DealCard key={deal.id} deal={deal} fromDb goingCount={goingCounts[deal.id]} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Sun Spots */}
-            {sunnyVenues.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-bold text-white">
-                    {L("☀️ Sun Spots", "☀️ Terrazas con Sol", "☀️ Posti al Sole")}
-                  </h2>
-                </div>
-                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-                  {sunnyVenues.map((venue) => {
-                    const SUN_LABELS: Record<string, string> = {
-                      morning_sun: L("Morning Sun", "Sol mañana", "Sole Mattina"),
-                      afternoon_sun: L("Afternoon Sun", "Sol tarde", "Sole Pomeriggio"),
-                      sunset_spot: L("Sunset Spot", "Atardecer", "Tramonto"),
-                      sunny_terrace: L("Sunny Terrace", "Terraza soleada", "Terrazza Soleggiata"),
-                      rooftop: "Rooftop",
-                      beachfront: L("Beachfront", "Frente al mar", "Sul Mare"),
-                      outdoor_seating: L("Outdoor", "Exterior", "All'Aperto"),
-                      mostly_shaded: L("Shaded", "A la sombra", "All'Ombra"),
-                    };
-                    return (
-                      <button
-                        key={venue.id}
-                        onClick={() => router.push(`/restaurants/${venue.id}`)}
-                        className="flex-shrink-0 w-40 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden text-left hover:shadow-md transition-shadow"
-                      >
-                        <div className="h-24 bg-amber-50 flex items-center justify-center text-4xl">
-                          {venue.image_url
-                            ? <img src={venue.image_url} alt={venue.name} className="w-full h-full object-cover" />
-                            : (venue.image_emoji || "🌞")}
-                        </div>
-                        <div className="p-2">
-                          <p className="font-semibold text-xs text-gray-900 truncate">{venue.name}</p>
-                          {venue.sun_tags && venue.sun_tags.length > 0 && (
-                            <p className="text-xs text-amber-600 mt-0.5 truncate">
-                              {SUN_LABELS[venue.sun_tags[0]] ?? venue.sun_tags[0]}
-                            </p>
-                          )}
-                          {venue.sun_note && (
-                            <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{venue.sun_note}</p>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* No deals fallback */}
-            {deals.length === 0 && (
-              <div className="text-center py-10 px-4">
-                <p className="text-5xl mb-4">🍺</p>
-                <p className="font-bold text-gray-200 text-lg mb-1">{L("Quiet right now", "Tranquilo por ahora", "Tranquillo adesso")}</p>
-                <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">
-                  {L(
-                    "Happy hours usually start from 17:00. Enable notifications and we'll ping you the moment a deal goes live.",
-                    "Los happy hours suelen empezar a partir de las 17:00. Activa las notificaciones y te avisamos en cuanto salga una oferta.",
-                    "Gli happy hour di solito iniziano dalle 17:00. Attiva le notifiche e ti avvisiamo appena esce un'offerta."
-                  )}
-                </p>
-                <a href="/deals" className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-colors">
-                  {L("Browse all deals →", "Ver todas las ofertas →", "Vedi tutte le offerte →")}
-                </a>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Filtered view */}
-        {!loading && !showSections && (
-          <div className="mb-4">
-            <h2 className="font-bold text-gray-900 mb-3">
-              {search
-                ? L(`Results for "${search}"`, `Resultados para "${search}"`, `Risultati per "${search}"`)
-                : tr.sections.nearYou}
-            </h2>
-            {filteredDeals.length === 0 ? (
-              <div className="text-center py-16 text-gray-400">
-                <p className="text-4xl mb-3">🍽️</p>
-                <p className="font-medium">{L("No deals found", "Sin resultados", "Nessuna offerta trovata")}</p>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {filteredDeals.map((deal) => (
-                  <DealCard key={deal.id} deal={deal} fromDb goingCount={goingCounts[deal.id]} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* All venues — always visible, filtered by city if selected */}
-        {!loading && (() => {
-          const venueList = allVenues.filter((r: any) =>
-            !r.is_demo && (city === "all" || r.city === city)
-          );
-          if (venueList.length === 0) return null;
-          const label = city === "all"
-            ? L("All venues", "Todos los locales", "Tutti i locali")
-            : L(`Venues in ${city}`, `Locales en ${city}`, `Locali a ${city}`);
-          return (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-bold text-white">{label}</h2>
-                <button onClick={() => router.push("/restaurants")} className="text-xs text-teal-500 font-medium">
-                  {L("See all", "Ver todo", "Vedi tutto")}
-                </button>
-              </div>
-              <div className="flex flex-col gap-2">
-                {venueList.slice(0, city === "all" ? 8 : 50).map((r: any) => {
-                  const liveDeals = (r.deals || []).filter((d: any) => d.is_live && d.is_active);
-                  const activeDeals = (r.deals || []).filter((d: any) => d.is_active);
-                  return (
-                    <button
-                      key={r.id}
-                      onClick={() => router.push(`/restaurants/${r.id}`)}
-                      className="w-full flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-2xl p-3 hover:border-orange-500 transition-colors text-left"
-                    >
-                      <div className={`w-12 h-12 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-xl ${liveDeals.length > 0 ? "ring-2 ring-red-500" : ""} ${r.image_url ? "" : "bg-gray-800"}`}>
-                        {r.image_url
-                          ? <img src={r.image_url} alt={r.name} className="w-full h-full object-cover" />
-                          : (r.image_emoji || "🍻")}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="font-semibold text-white text-sm truncate">{r.name}</p>
-                          {r.is_approved && <span className="text-teal-500 text-xs flex-shrink-0">✓</span>}
-                          {liveDeals.length > 0 && (
-                            <span className="flex items-center gap-0.5 bg-red-900/60 text-red-400 text-[10px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0">
-                              <span className="w-1 h-1 bg-red-400 rounded-full animate-pulse" />
-                              LIVE
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-500 truncate">
-                          {[r.neighborhood, r.city].filter(Boolean).join(" · ")} {activeDeals.length > 0 ? `· ${activeDeals.length} ${lang === "es" ? "oferta" + (activeDeals.length !== 1 ? "s" : "") : lang === "it" ? "offerta" + (activeDeals.length !== 1 ? "e" : "") : "deal" + (activeDeals.length !== 1 ? "s" : "")}` : ""}
-                        </p>
-                      </div>
-                      <span className="text-gray-600 flex-shrink-0">→</span>
-                    </button>
-                  );
-                })}
-                {city === "all" && venueList.length > 8 && (
-                  <button
-                    onClick={() => router.push("/restaurants")}
-                    className="w-full text-center text-sm text-teal-500 font-medium py-3 bg-gray-900 border border-gray-800 rounded-2xl hover:border-teal-600 transition-colors"
-                  >
-                    {L(`See ${venueList.length - 8} more venues →`, `Ver los ${venueList.length - 8} locales más →`, `Vedi altri ${venueList.length - 8} locali →`)}
-                  </button>
-                )}
+      {/* TWO BUCKETS */}
+      <section className="lp-buckets">
+        <div className="lp-wrap">
+          <div className="lp-bucket-grid lp-fade">
+            <div className="lp-bucket">
+              <div className="lp-bucket-num">01</div>
+              <h2 className="lp-bucket-title">SPEND<br /><em>LESS.</em></h2>
+              <p>Stop paying full price for the same beer your mate got 2-for-1 an hour ago. Know the deals before you walk in.</p>
+              <div className="lp-bucket-items">
+                <div className="lp-bucket-item">Happy hours from 17:00</div>
+                <div className="lp-bucket-item">2-for-1 drink deals</div>
+                <div className="lp-bucket-item">Flash deals under an hour</div>
+                <div className="lp-bucket-item">Food specials and set menus</div>
               </div>
             </div>
-          );
-        })()}
-
-
-        {/* Business CTA */}
-        {!loading && (
-          <div className="mt-4 bg-gradient-to-r from-teal-600 to-teal-500 rounded-2xl p-5 text-white">
-            <h3 className="font-bold text-lg">
-              {L("List your venue on Dealeo", "Lista tu local en Dealeo", "Aggiungi il tuo locale su Dealeo")}
-            </h3>
-            <p className="text-teal-100 text-sm mb-4">
-              {L("List your venue for free and start reaching customers in Alicante today.", "Añade tu local gratis y empieza a llegar a clientes en Alicante hoy mismo.", "Aggiungi il tuo locale gratis e inizia ad attirare clienti ad Alicante oggi.")}
-            </p>
-            <a
-              href="/business"
-              className="inline-block bg-white text-teal-600 font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-teal-50 transition-colors"
-            >
-              {L("Join free →", "Unirse gratis →", "Unisciti gratis →")}
-            </a>
+            <div className="lp-bucket">
+              <div className="lp-bucket-num">02</div>
+              <h2 className="lp-bucket-title">KNOW<br /><em>WHERE.</em></h2>
+              <p>157 bars across two cities. Filter by neighbourhood, deal type, or what&apos;s live right now. No scrolling through Instagram.</p>
+              <div className="lp-bucket-items">
+                <div className="lp-bucket-item">Alicante old town bars</div>
+                <div className="lp-bucket-item">Benidorm strip venues</div>
+                <div className="lp-bucket-item">Map view, sorted by distance</div>
+                <div className="lp-bucket-item">Live deals highlighted in red</div>
+              </div>
+            </div>
           </div>
-        )}
-      </main>
+        </div>
+      </section>
 
+      {/* STATS */}
+      <section className="lp-stats">
+        <div className="lp-wrap">
+          <div className="lp-stats-grid lp-fade">
+            <div className="lp-stat">
+              <div className="lp-stat-n"><em>157</em>+</div>
+              <div className="lp-stat-l">bars & venues listed</div>
+            </div>
+            <div className="lp-stat">
+              <div className="lp-stat-n"><em>2</em></div>
+              <div className="lp-stat-l">cities covered</div>
+            </div>
+            <div className="lp-stat">
+              <div className="lp-stat-n"><em>0</em>€</div>
+              <div className="lp-stat-l">to use, forever</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <BottomNav />
-    </div>
+      {/* FEATURES */}
+      <section className="lp-features">
+        <div className="lp-wrap">
+          <div className="lp-feat-label">How it works</div>
+          <h2 className="lp-h2">Built for people<br />who drink well.</h2>
+
+          <div className="lp-feat-block lp-fade">
+            <div className="lp-feat-text">
+              <div className="lp-feat-icon">⚡</div>
+              <h3>Live deals, right now</h3>
+              <p>Bars can activate a flash deal for the next 30–60 minutes. You get it in real time — before the queue forms and before it sells out.</p>
+            </div>
+            <div className="lp-feat-visual">
+              <div className="lp-fvc">
+                <div style={{fontSize:'.6rem',fontWeight:700,color:'var(--green)',marginBottom:14,letterSpacing:'.06em',textTransform:'uppercase',display:'flex',alignItems:'center',gap:6}}>
+                  <span style={{width:6,height:6,borderRadius:'50%',background:'var(--green)',display:'inline-block'}} />
+                  3 deals live now
+                </div>
+                {[
+                  {label:'Bar Manero · 2-for-1',val:'ends 20:00',pct:72},
+                  {label:'La Lonja · Pintxos €3',val:'ends 20:00',pct:55},
+                  {label:'NIC · Happy Hour',val:'ends 22:00',pct:38},
+                ].map((r,i) => (
+                  <div key={i} className="lp-fvc-row">
+                    <span className="lp-fvc-dot" style={{background:'var(--orange)'}} />
+                    <span style={{fontSize:'.65rem',color:'var(--fg)',flex:1}}>{r.label}</span>
+                    <span className="lp-fvc-label" style={{color:'var(--orange)',fontSize:'.6rem',fontWeight:700}}>{r.val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="lp-feat-block flip lp-fade lp-fade d1">
+            <div className="lp-feat-text">
+              <div className="lp-feat-icon">📍</div>
+              <h3>Your area, not all of Spain</h3>
+              <p>Filter by neighbourhood. Whether you&apos;re in Alicante&apos;s old town, on Benidorm&apos;s Levante strip, or somewhere in between — see only what&apos;s walking distance.</p>
+            </div>
+            <div className="lp-feat-visual">
+              <div className="lp-fvc">
+                <div style={{fontSize:'.6rem',fontWeight:700,color:'var(--fg-2)',marginBottom:10,letterSpacing:'.06em',textTransform:'uppercase'}}>Benidorm · Levante</div>
+                <div className="lp-map-grid">
+                  {['🏖','🍺','🎵','🍹','🥂','🎭','🍻','🍕','🎸','🍷','🥃','🎶'].map((e,i) => (
+                    <div key={i} className={`lp-map-dot${i % 4 === 1 ? ' live' : i % 3 === 0 ? ' on' : ''}`}>{e}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="lp-feat-block lp-fade d2">
+            <div className="lp-feat-text">
+              <div className="lp-feat-icon">✅</div>
+              <h3>Researched, not invented</h3>
+              <p>Every deal was gathered from public sources — menus, social posts, bar websites. Prices change. If something&apos;s off, tap Report and suggest the real price. We update it for everyone.</p>
+            </div>
+            <div className="lp-feat-visual">
+              <div className="lp-fvc">
+                <div style={{fontSize:'.6rem',fontWeight:700,color:'var(--orange)',marginBottom:14,letterSpacing:'.06em',textTransform:'uppercase',display:'flex',alignItems:'center',gap:6}}>
+                  <span style={{width:6,height:6,borderRadius:'50%',background:'var(--orange)',display:'inline-block'}} />
+                  Community updated
+                </div>
+                <div style={{fontFamily:'var(--fd)',fontWeight:800,fontSize:'1.1rem',marginBottom:4,color:'var(--fg)'}}>2-for-1 Gin Tonics</div>
+                <div style={{fontSize:'.65rem',color:'var(--fg-2)',marginBottom:12}}>NIC Cócteles · El Barrio · Alicante</div>
+                <div style={{background:'rgba(74,222,128,.06)',borderRadius:8,padding:10,fontSize:'.65rem',color:'var(--fg-2)',lineHeight:1.5,border:'1px solid rgba(74,222,128,.12)'}}>
+                  💬 &ldquo;Actually it&apos;s €6 now, not €5&rdquo; — updated by a user, 2h ago
+                </div>
+                <div style={{marginTop:10,fontSize:'.6rem',color:'var(--fg-3)'}}>Researched from public sources · You can fix it</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CITIES */}
+      <section className="lp-cities">
+        <div className="lp-wrap">
+          <div className="lp-feat-label">Where we are</div>
+          <h2 className="lp-h2">Two cities.<br />Zero excuses.</h2>
+          <div className="lp-city-grid lp-fade">
+            <div className="lp-city-card">
+              <div className="lp-city-emoji">🌊</div>
+              <div className="lp-city-chip">Sophisticated city</div>
+              <h3>Alicante</h3>
+              <p>Old town vermuterías, port-side cocktail bars, rooftop terraces. Locals eat at 14:00 and drink until late. Now you know where.</p>
+              <div className="lp-city-meta"><strong>44 venues</strong> · El Barrio, Casco Antiguo, Centro, Puerto, Explanada</div>
+            </div>
+            <div className="lp-city-card">
+              <div className="lp-city-emoji">🎉</div>
+              <div className="lp-city-chip">Holiday strip</div>
+              <h3>Benidorm</h3>
+              <p>British pubs, beachfront bars, shot bars and showbars. Every night somebody&apos;s running a happy hour. Find the one worth going to.</p>
+              <div className="lp-city-meta"><strong>113 venues</strong> · Levante Strip, Rincon de Loix, Old Town, Poniente</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST */}
+      <section className="lp-trust">
+        <div className="lp-wrap">
+          <div className="lp-trust-inner lp-fade">
+            <div>
+              <div className="lp-trust-label">✓ Honest</div>
+              <h2 className="lp-h2" style={{marginBottom:16}}>NO B.S.</h2>
+              <p style={{fontSize:'.95rem',color:'var(--fg-2)',lineHeight:1.7}}>We make money from travel, not from bars. That means no reason to hide a great deal — or promote a bad one.</p>
+            </div>
+            <div className="lp-trust-items">
+              <div className="lp-trust-item-b">
+                <div className="lp-t-icon">🏪</div>
+                <div className="lp-t-content">
+                  <h4>We make money from travel, not bars</h4>
+                  <p>Dealeo earns affiliate commission when you book a hotel or buy a travel eSIM. Bars don&apos;t pay us to rank higher.</p>
+                </div>
+              </div>
+              <div className="lp-trust-item-b">
+                <div className="lp-t-icon">📍</div>
+                <div className="lp-t-content">
+                  <h4>Deals are researched, not invented</h4>
+                  <p>Gathered from menus, social posts, bar websites. Prices change — if something&apos;s wrong, suggest the real price and we&apos;ll update it for everyone.</p>
+                </div>
+              </div>
+              <div className="lp-trust-item-b">
+                <div className="lp-t-icon">🆓</div>
+                <div className="lp-t-content">
+                  <h4>Free for users, always</h4>
+                  <p>No subscription, no premium tier, no &ldquo;unlock more deals.&rdquo; Everything is visible to everyone, for free. That won&apos;t change.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* REVIEWS */}
+      <section className="lp-reviews">
+        <div className="lp-wrap">
+          <div className="lp-reviews-header">
+            <h2 className="lp-h2" style={{marginBottom:0}}>What people say.<br /><span style={{color:'var(--fg-2)'}}>NOT BRIBED.</span></h2>
+            <p className="lp-reviews-aside">Real reviews from real users. We don&apos;t pay for them and we can&apos;t delete them.</p>
+          </div>
+          <div className="lp-review-grid lp-fade">
+            {[
+              {stars:'★★★★★',text:'"Finally found the happy hour at Bar Manero I walked past for three days. Saved €8 on gin tonics."',author:'— James T., Alicante'},
+              {stars:'★★★★★',text:'"Benidorm strip on a budget actually works. Pulled up Dealeo at 18:00, had a €2 pint by 18:05."',author:'— Sarah M., Benidorm'},
+              {stars:'★★★★☆',text:'"One deal was wrong price, reported it, got fixed next day. Like that it\'s honest about being community-sourced."',author:'— Mikael J., Alicante'},
+            ].map((r,i) => (
+              <div key={i} className="lp-review-card">
+                <div className="lp-review-stars">{r.stars}</div>
+                <p className="lp-review-text">{r.text}</p>
+                <div className="lp-review-author">{r.author}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FOR BARS */}
+      <section className="lp-for-bars">
+        <div className="lp-wrap">
+          <div className="lp-for-bars-inner">
+            <div>
+              <div className="lp-feat-label">For venue owners</div>
+              <h2 className="lp-h2">Your deals.<br />Their phones.</h2>
+              <div className="lp-fbs-steps">
+                {[
+                  {n:'1',title:'Claim your listing',desc:'Your bar is probably already on Dealeo. Claim it in 2 minutes — no setup fee, no contract.'},
+                  {n:'2',title:'Add your deals',desc:'Log in and add whatever you\'re running tonight. Happy hour, 2-for-1, flash deal — your call.'},
+                  {n:'3',title:'Customers walk in',desc:'People nearby see your deal live. They show up. You don\'t pay us for the lead.'},
+                ].map((s) => (
+                  <div key={s.n} className="lp-fbs-item">
+                    <div className="lp-fbs-num">{s.n}</div>
+                    <div>
+                      <strong>{s.title}</strong>
+                      <p>{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <a href="/business" className="lp-btn lp-btn-teal" style={{background:'var(--teal)',color:'#fff',marginTop:12}}>List your venue free →</a>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+              <div className="lp-fbv-card">
+                <div style={{display:'flex',alignItems:'center',gap:8,background:'rgba(74,222,128,.06)',border:'1px solid rgba(74,222,128,.12)',borderRadius:8,padding:'6px 10px',marginBottom:16,width:'fit-content'}}>
+                  <span style={{width:8,height:8,borderRadius:'50%',background:'var(--green)',display:'inline-block'}} />
+                  <span style={{fontSize:'.65rem',fontWeight:700,color:'var(--green)'}}>Deal is live now</span>
+                </div>
+                <div className="lp-fbv-stat-row">
+                  <div className="lp-fbv-stat"><div className="lp-fbv-stat-n">47</div>views today</div>
+                  <div className="lp-fbv-stat"><div className="lp-fbv-stat-n">12</div>going</div>
+                  <div className="lp-fbv-stat"><div className="lp-fbv-stat-n">0€</div>cost</div>
+                </div>
+              </div>
+              <p style={{fontSize:'.72rem',color:'var(--fg-3)',textAlign:'center',maxWidth:240}}>You control what&apos;s on here. We just make sure the right people see it.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="lp-cta">
+        <div className="lp-wrap">
+          <h2 className="lp-h2" style={{fontSize:'clamp(2.4rem,6vw,4.5rem)',maxWidth:'14ch',margin:'0 auto 12px'}}>Stop paying full price.</h2>
+          <p className="lp-cta-sub">The happy hour started 20 minutes ago.</p>
+          <div className="lp-cta-btns">
+            <a href="https://play.google.com/store/apps/details?id=es.dealeo.app" className="lp-btn lp-btn-orange lp-btn-lg">Download free on Android</a>
+            <a href="/deals" className="lp-btn lp-btn-outline lp-btn-lg">Open in browser →</a>
+          </div>
+          <p className="lp-cta-note">Free forever · No account needed · Works right now</p>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="lp-footer">
+        <div className="lp-footer-inner">
+          <span className="lp-footer-copy">© 2025 Dealeo · Alicante &amp; Benidorm</span>
+          <div className="lp-footer-links">
+            <a href="/deals">App</a>
+            <a href="/business">For bars</a>
+            <a href="/sobre-dealeo">About</a>
+          </div>
+        </div>
+      </footer>
+
+      <script dangerouslySetInnerHTML={{__html:`
+        (function(){
+          var els=document.querySelectorAll('.lp-fade');
+          if(!els.length)return;
+          var io=new IntersectionObserver(function(entries){
+            entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}});
+          },{threshold:.12});
+          els.forEach(function(el){io.observe(el)});
+        })();
+      `}} />
+    </>
   );
 }

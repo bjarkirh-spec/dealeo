@@ -29,6 +29,7 @@ export default function DealDetails() {
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportDetails, setReportDetails] = useState("");
+  const [reportSuggestedPrice, setReportSuggestedPrice] = useState("");
   const [reportSent, setReportSent] = useState(false);
   const [reportSending, setReportSending] = useState(false);
   const [reviews, setReviews] = useState<{ rating: number; comment: string | null; created_at: string; user_id: string }[]>([]);
@@ -161,6 +162,7 @@ export default function DealDetails() {
         venueName: deal?.restaurants?.name ?? "",
         reason: reportReason,
         details: reportDetails,
+        suggestedPrice: reportSuggestedPrice,
       }),
     });
     setReportSending(false);
@@ -573,7 +575,7 @@ export default function DealDetails() {
                   {lang === "es" ? "Lo revisaremos pronto." : "We'll review this shortly."}
                 </p>
                 <button
-                  onClick={() => { setShowReport(false); setReportSent(false); setReportReason(""); setReportDetails(""); }}
+                  onClick={() => { setShowReport(false); setReportSent(false); setReportReason(""); setReportDetails(""); setReportSuggestedPrice(""); }}
                   className="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl text-sm"
                 >
                   {lang === "es" ? "Cerrar" : "Close"}
@@ -611,6 +613,23 @@ export default function DealDetails() {
                     </button>
                   ))}
                 </div>
+                {reportReason === "wrong_price" && (
+                  <div className="mb-3">
+                    <p className="text-sm font-medium text-gray-700 mb-1.5">
+                      {lang === "es" ? "¿Cuál es el precio correcto?" : "What's the correct price?"}
+                    </p>
+                    <input
+                      type="text"
+                      value={reportSuggestedPrice}
+                      onChange={(e) => setReportSuggestedPrice(e.target.value)}
+                      placeholder={lang === "es" ? "Ej: 2 cervezas por €5" : "e.g. 2 beers for €5"}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 mb-1 focus:outline-none focus:border-orange-400"
+                    />
+                    <p className="text-xs text-gray-400">
+                      {lang === "es" ? "Lo revisaremos y actualizaremos para todos." : "We'll review it and update for everyone."}
+                    </p>
+                  </div>
+                )}
                 <textarea
                   value={reportDetails}
                   onChange={(e) => setReportDetails(e.target.value)}
