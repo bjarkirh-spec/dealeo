@@ -499,8 +499,10 @@ img{max-width:100%}
                 <div style={{margin:'0 10px 7px',borderRadius:14,overflow:'hidden',display:'flex',background:'#161923',border:'1px solid #23273a'}}>
                   <div style={{width:70,flexShrink:0,position:'relative',overflow:'hidden'}}>
                     <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,#0d4f3c 0%,#052b1f 50%,#091a14 100%)'}}>
-                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.8rem',filter:'drop-shadow(0 2px 8px rgba(0,0,0,.5))'}}>🍹</div>
-                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,transparent 60%,#161923)'}} />
+                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        <svg width="28" height="36" viewBox="0 0 28 36" fill="none"><path d="M4 2h20l-7 14v14h4v4H7v-4h4V16L4 2z" fill="rgba(13,212,168,.25)" stroke="rgba(13,212,168,.7)" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="9" cy="9" r="1.5" fill="rgba(13,212,168,.6)"/><path d="M14 16v6" stroke="rgba(13,212,168,.4)" strokeWidth="1"/></svg>
+                      </div>
+                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,transparent 55%,#161923)'}} />
                     </div>
                   </div>
                   <div style={{padding:'9px 10px 8px',flex:1,minWidth:0}}>
@@ -524,8 +526,10 @@ img{max-width:100%}
                 <div style={{margin:'0 10px 7px',borderRadius:14,overflow:'hidden',display:'flex',background:'#161923',border:'1px solid #23273a'}}>
                   <div style={{width:70,flexShrink:0,position:'relative',overflow:'hidden'}}>
                     <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,#3b1f06 0%,#1e0f03 100%)'}}>
-                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.8rem',filter:'drop-shadow(0 2px 8px rgba(0,0,0,.5))'}}>🍺</div>
-                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,transparent 60%,#161923)'}} />
+                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        <svg width="26" height="36" viewBox="0 0 26 36" fill="none"><rect x="5" y="2" width="16" height="22" rx="3" fill="rgba(251,191,36,.2)" stroke="rgba(251,191,36,.6)" strokeWidth="1.5"/><rect x="8" y="5" width="4" height="8" rx="1" fill="rgba(251,191,36,.3)"/><rect x="5" y="18" width="16" height="6" rx="0" fill="rgba(251,191,36,.25)"/><rect x="8" y="24" width="10" height="8" rx="1" fill="rgba(251,191,36,.15)" stroke="rgba(251,191,36,.4)" strokeWidth="1"/><path d="M21 8h3v6h-3" stroke="rgba(251,191,36,.5)" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,transparent 55%,#161923)'}} />
                     </div>
                   </div>
                   <div style={{padding:'9px 10px 8px',flex:1,minWidth:0}}>
@@ -545,8 +549,10 @@ img{max-width:100%}
                 <div style={{margin:'0 10px 10px',borderRadius:14,overflow:'hidden',display:'flex',background:'#161923',border:'1px solid #23273a'}}>
                   <div style={{width:70,flexShrink:0,position:'relative',overflow:'hidden'}}>
                     <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,#1a0a2e 0%,#0d0618 100%)'}}>
-                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.8rem',filter:'drop-shadow(0 2px 8px rgba(0,0,0,.5))'}}>🍸</div>
-                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,transparent 60%,#161923)'}} />
+                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        <svg width="28" height="36" viewBox="0 0 28 36" fill="none"><path d="M2 4h24L16 18v12h3v4H9v-4h3V18L2 4z" fill="rgba(167,139,250,.2)" stroke="rgba(167,139,250,.65)" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="14" cy="14" r="3" fill="rgba(167,139,250,.2)"/><path d="M8 8l2 3M20 8l-2 3" stroke="rgba(167,139,250,.4)" strokeWidth="1" strokeLinecap="round"/></svg>
+                      </div>
+                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,transparent 55%,#161923)'}} />
                     </div>
                   </div>
                   <div style={{padding:'9px 10px 8px',flex:1,minWidth:0}}>
