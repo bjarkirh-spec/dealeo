@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Dealeo — Happy Hours & Live Deals in Alicante & Benidorm",
@@ -630,7 +631,7 @@ img{max-width:100%}
         </div>
       </footer>
 
-      <script dangerouslySetInnerHTML={{__html:`
+      <Script id="lp-fade" strategy="afterInteractive">{`
         (function(){
           var els=document.querySelectorAll('.lp-fade');
           if(!els.length)return;
@@ -639,7 +640,7 @@ img{max-width:100%}
           },{threshold:.12});
           els.forEach(function(el){io.observe(el)});
         })();
-      `}} />
+      `}</Script>
     </>
   );
 }
