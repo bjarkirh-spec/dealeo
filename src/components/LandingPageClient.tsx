@@ -452,60 +452,112 @@ img{max-width:100%}
             <div className="lp-phone-outer">
               <div className="lp-phone-glow" />
               <div className="lp-phone">
+                {/* notch */}
                 <div className="lp-pill-wrap"><div className="lp-pill" /></div>
-                {/* Header */}
-                <div style={{padding:'8px 14px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <span style={{fontFamily:'var(--fd)',fontWeight:900,fontSize:'1.1rem',color:'#f97316',letterSpacing:'-.01em'}}>Deal<span style={{color:'#0d9488'}}>eo</span></span>
-                  <span style={{display:'flex',alignItems:'center',gap:4,background:'#ef4444',color:'#fff',fontSize:'.5rem',fontWeight:700,padding:'2px 7px',borderRadius:20,letterSpacing:'.05em'}}>
-                    <span style={{width:4,height:4,borderRadius:'50%',background:'#fff',display:'inline-block'}} />
-                    LIVE
+
+                {/* status bar */}
+                <div style={{padding:'0 16px 6px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontSize:'.45rem',color:'#6b7280',fontWeight:600}}>9:41</span>
+                  <div style={{display:'flex',gap:3,alignItems:'center'}}>
+                    <svg width="9" height="6" viewBox="0 0 9 6"><rect x="0" y="2" width="2" height="4" rx=".5" fill="#6b7280"/><rect x="2.5" y="1.5" width="2" height="4.5" rx=".5" fill="#6b7280"/><rect x="5" y=".5" width="2" height="5.5" rx=".5" fill="#6b7280"/><rect x="7.5" y="0" width="1.5" height="6" rx=".5" fill="#9ca3af"/></svg>
+                    <svg width="7" height="6" viewBox="0 0 7 6"><path d="M3.5 1C2.1 1 .9 1.6 0 2.5l1 1C1.6 2.8 2.5 2.4 3.5 2.4s1.9.4 2.5 1.1l1-1C6.1 1.6 4.9 1 3.5 1z" fill="#6b7280"/><path d="M3.5 3.2c-.6 0-1.1.3-1.4.7l1 1c.1-.1.3-.2.4-.2s.3.1.4.2l1-1c-.3-.4-.8-.7-1.4-.7z" fill="#9ca3af"/><circle cx="3.5" cy="5.3" r=".7" fill="#fff"/></svg>
+                    <svg width="11" height="6" viewBox="0 0 11 6"><rect x=".5" y=".5" width="9" height="5" rx="1.5" stroke="#6b7280" strokeWidth=".8" fill="none"/><rect x="10" y="2" width=".8" height="2" rx=".4" fill="#6b7280"/><rect x="1.5" y="1.5" width="6" height="3" rx=".8" fill="#4ade80"/></svg>
+                  </div>
+                </div>
+
+                {/* app header */}
+                <div style={{padding:'2px 14px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontFamily:'var(--fd)',fontWeight:900,fontSize:'1.15rem',letterSpacing:'-.02em'}}>
+                    <span style={{color:'#f97316'}}>Deal</span><span style={{color:'#0d9488'}}>eo</span>
                   </span>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <span style={{display:'flex',alignItems:'center',gap:3,background:'rgba(239,68,68,.15)',border:'1px solid rgba(239,68,68,.3)',color:'#f87171',fontSize:'.42rem',fontWeight:700,padding:'2px 7px',borderRadius:20,letterSpacing:'.06em'}}>
+                      <span style={{width:4,height:4,borderRadius:'50%',background:'#ef4444',display:'inline-block',boxShadow:'0 0 4px #ef4444'}} />
+                      LIVE
+                    </span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  </div>
                 </div>
-                {/* Search */}
-                <div style={{margin:'0 10px 10px',background:'#1e2230',borderRadius:12,padding:'7px 10px',display:'flex',alignItems:'center',gap:6}}>
-                  <span style={{fontSize:'.7rem',color:'#55586a'}}>🔍</span>
-                  <span style={{fontSize:'.6rem',color:'#55586a'}}>{lang==="es"?"Buscar ofertas...":"Search deals..."}</span>
-                </div>
-                {/* Category pills */}
-                <div style={{display:'flex',gap:5,padding:'0 10px 10px',overflowX:'hidden'}}>
+
+                {/* category pills */}
+                <div style={{display:'flex',gap:5,padding:'0 12px 10px',overflowX:'hidden'}}>
                   {(lang==="es"
-                    ? ['🎯 Todas','🔴 En Vivo','2️⃣ 2x1','🍹 Happy Hour']
-                    : ['🎯 All','🔴 Live','2️⃣ 2-for-1','🍹 Happy Hour']
+                    ? ['Todas','En Vivo','2x1','Happy Hour','Bebidas']
+                    : ['All','Live','2-for-1','Happy Hour','Drinks']
                   ).map((label,i) => (
-                    <span key={i} style={{flexShrink:0,background:i===0?'#0d9488':'#1e2230',color:i===0?'#fff':'#9496a3',fontSize:'.48rem',fontWeight:700,padding:'4px 7px',borderRadius:20,whiteSpace:'nowrap'}}>{label}</span>
+                    <span key={i} style={{
+                      flexShrink:0,
+                      background: i===0 ? '#0d9488' : i===1 ? 'rgba(239,68,68,.15)' : '#1a1d2a',
+                      color: i===0 ? '#fff' : i===1 ? '#f87171' : '#8b8fa8',
+                      border: i===1 ? '1px solid rgba(239,68,68,.3)' : '1px solid transparent',
+                      fontSize:'.44rem',fontWeight:700,padding:'4px 9px',borderRadius:20,whiteSpace:'nowrap'
+                    }}>{i===1 ? '● ' : ''}{label}</span>
                   ))}
                 </div>
-                {/* Deal card 1 - large with photo */}
-                <div style={{margin:'0 10px 8px',background:'#111318',border:'1px solid #20242f',borderRadius:14,overflow:'hidden',display:'flex',gap:0}}>
-                  <div style={{width:72,flexShrink:0,background:'linear-gradient(160deg,#1a2a1a,#0d1a12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'2rem'}}>🍹</div>
-                  <div style={{padding:'9px 10px',flex:1,minWidth:0}}>
-                    <div style={{display:'flex',gap:4,marginBottom:5}}>
-                      <span style={{background:'#0d9488',color:'#fff',fontSize:'.45rem',fontWeight:700,padding:'2px 6px',borderRadius:20}}>2x1</span>
-                      <span style={{background:'rgba(74,222,128,.12)',color:'#4ade80',fontSize:'.45rem',fontWeight:700,padding:'2px 6px',borderRadius:20}}>✓ {lang==="es"?"Del local":"Verified"}</span>
+
+                {/* card 1 */}
+                <div style={{margin:'0 10px 7px',borderRadius:14,overflow:'hidden',display:'flex',background:'#161923',border:'1px solid #23273a'}}>
+                  <div style={{width:70,flexShrink:0,position:'relative',overflow:'hidden'}}>
+                    <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,#0d4f3c 0%,#052b1f 50%,#091a14 100%)'}}>
+                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.8rem',filter:'drop-shadow(0 2px 8px rgba(0,0,0,.5))'}}>🍹</div>
+                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,transparent 60%,#161923)'}} />
                     </div>
-                    <div style={{fontWeight:700,fontSize:'.72rem',color:'#efefef',marginBottom:2}}>{lang==="es"?"2 cócteles por €14":"2 cocktails for €14"}</div>
-                    <div style={{fontSize:'.55rem',color:'#9496a3',marginBottom:5}}>The Whisper Cocktail Co · Centro</div>
+                  </div>
+                  <div style={{padding:'9px 10px 8px',flex:1,minWidth:0}}>
+                    <div style={{display:'flex',gap:4,marginBottom:5,flexWrap:'wrap'}}>
+                      <span style={{background:'#0d9488',color:'#fff',fontSize:'.4rem',fontWeight:800,padding:'2px 6px',borderRadius:20,letterSpacing:'.02em'}}>2×1</span>
+                      <span style={{background:'rgba(74,222,128,.1)',color:'#4ade80',fontSize:'.4rem',fontWeight:700,padding:'2px 6px',borderRadius:20,border:'1px solid rgba(74,222,128,.2)'}}>✓ {lang==="es"?"Del local":"Verified"}</span>
+                    </div>
+                    <div style={{fontWeight:700,fontSize:'.68rem',color:'#f0f1f5',marginBottom:2,lineHeight:1.3}}>{lang==="es"?"2 cócteles por €14":"2 cocktails for €14"}</div>
+                    <div style={{fontSize:'.5rem',color:'#6b7280',marginBottom:6}}>The Whisper Co · Centro</div>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                      <span style={{fontSize:'.5rem',color:'#4ade80',display:'flex',alignItems:'center',gap:3}}>
-                        <span style={{width:4,height:4,borderRadius:'50%',background:'#4ade80',display:'inline-block'}} />
-                        {lang==="es"?"En vivo ahora":"Live now"}
+                      <span style={{display:'flex',alignItems:'center',gap:3,fontSize:'.44rem',color:'#4ade80',fontWeight:600}}>
+                        <span style={{width:4,height:4,borderRadius:'50%',background:'#4ade80',display:'inline-block',boxShadow:'0 0 5px #4ade80'}} />
+                        {lang==="es"?"En vivo · 22:00":"Live · ends 22:00"}
                       </span>
-                      <span style={{background:'#f97316',color:'#fff',fontSize:'.5rem',fontWeight:700,padding:'3px 8px',borderRadius:20}}>{lang==="es"?"Explorar":"Explore"}</span>
+                      <span style={{background:'linear-gradient(135deg,#f97316,#ea580c)',color:'#fff',fontSize:'.44rem',fontWeight:700,padding:'3px 9px',borderRadius:20,boxShadow:'0 2px 8px rgba(249,115,22,.35)'}}>{lang==="es"?"Explorar":"Explore"}</span>
                     </div>
                   </div>
                 </div>
-                {/* Deal card 2 */}
-                <div style={{margin:'0 10px 8px',background:'#111318',border:'1px solid #20242f',borderRadius:14,overflow:'hidden',display:'flex',gap:0}}>
-                  <div style={{width:72,flexShrink:0,background:'linear-gradient(160deg,#1a1510,#120d08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'2rem'}}>🍺</div>
-                  <div style={{padding:'9px 10px',flex:1,minWidth:0}}>
-                    <div style={{display:'flex',gap:4,marginBottom:5}}>
-                      <span style={{background:'#f59e0b',color:'#0b0d12',fontSize:'.45rem',fontWeight:700,padding:'2px 6px',borderRadius:20}}>Happy Hour</span>
+
+                {/* card 2 */}
+                <div style={{margin:'0 10px 7px',borderRadius:14,overflow:'hidden',display:'flex',background:'#161923',border:'1px solid #23273a'}}>
+                  <div style={{width:70,flexShrink:0,position:'relative',overflow:'hidden'}}>
+                    <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,#3b1f06 0%,#1e0f03 100%)'}}>
+                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.8rem',filter:'drop-shadow(0 2px 8px rgba(0,0,0,.5))'}}>🍺</div>
+                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,transparent 60%,#161923)'}} />
                     </div>
-                    <div style={{fontWeight:700,fontSize:'.72rem',color:'#efefef',marginBottom:2}}>Cañas €1.50</div>
-                    <div style={{fontSize:'.55rem',color:'#9496a3',marginBottom:5}}>Bar Manero · Centro</div>
+                  </div>
+                  <div style={{padding:'9px 10px 8px',flex:1,minWidth:0}}>
+                    <div style={{display:'flex',gap:4,marginBottom:5}}>
+                      <span style={{background:'rgba(245,158,11,.15)',color:'#fbbf24',fontSize:'.4rem',fontWeight:800,padding:'2px 6px',borderRadius:20,border:'1px solid rgba(245,158,11,.25)',letterSpacing:'.02em'}}>Happy Hour</span>
+                    </div>
+                    <div style={{fontWeight:700,fontSize:'.68rem',color:'#f0f1f5',marginBottom:2,lineHeight:1.3}}>Cañas €1.50</div>
+                    <div style={{fontSize:'.5rem',color:'#6b7280',marginBottom:6}}>Bar Manero · Centro</div>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                      <span style={{fontSize:'.5rem',color:'#f59e0b'}}>⏰ {lang==="es"?"17:00–20:00":"17:00–20:00"}</span>
-                      <span style={{background:'#f97316',color:'#fff',fontSize:'.5rem',fontWeight:700,padding:'3px 8px',borderRadius:20}}>{lang==="es"?"Explorar":"Explore"}</span>
+                      <span style={{fontSize:'.44rem',color:'#fbbf24',fontWeight:600}}>⏰ 17:00 – 20:00</span>
+                      <span style={{background:'linear-gradient(135deg,#f97316,#ea580c)',color:'#fff',fontSize:'.44rem',fontWeight:700,padding:'3px 9px',borderRadius:20,boxShadow:'0 2px 8px rgba(249,115,22,.35)'}}>{lang==="es"?"Explorar":"Explore"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* card 3 smaller */}
+                <div style={{margin:'0 10px 10px',borderRadius:14,overflow:'hidden',display:'flex',background:'#161923',border:'1px solid #23273a'}}>
+                  <div style={{width:70,flexShrink:0,position:'relative',overflow:'hidden'}}>
+                    <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,#1a0a2e 0%,#0d0618 100%)'}}>
+                      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.8rem',filter:'drop-shadow(0 2px 8px rgba(0,0,0,.5))'}}>🍸</div>
+                      <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,transparent 60%,#161923)'}} />
+                    </div>
+                  </div>
+                  <div style={{padding:'9px 10px 8px',flex:1,minWidth:0}}>
+                    <div style={{display:'flex',gap:4,marginBottom:5}}>
+                      <span style={{background:'rgba(139,92,246,.15)',color:'#a78bfa',fontSize:'.4rem',fontWeight:800,padding:'2px 6px',borderRadius:20,border:'1px solid rgba(139,92,246,.25)',letterSpacing:'.02em'}}>{lang==="es"?"Flash":"Flash"}</span>
+                    </div>
+                    <div style={{fontWeight:700,fontSize:'.68rem',color:'#f0f1f5',marginBottom:2,lineHeight:1.3}}>{lang==="es"?"Gin Tonic €6":"Gin & Tonic €6"}</div>
+                    <div style={{fontSize:'.5rem',color:'#6b7280',marginBottom:6}}>Mirador · Old Town</div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                      <span style={{fontSize:'.44rem',color:'#a78bfa',fontWeight:600}}>⚡ {lang==="es"?"Solo hoy":"Today only"}</span>
+                      <span style={{background:'linear-gradient(135deg,#f97316,#ea580c)',color:'#fff',fontSize:'.44rem',fontWeight:700,padding:'3px 9px',borderRadius:20,boxShadow:'0 2px 8px rgba(249,115,22,.35)'}}>{lang==="es"?"Explorar":"Explore"}</span>
                     </div>
                   </div>
                 </div>
