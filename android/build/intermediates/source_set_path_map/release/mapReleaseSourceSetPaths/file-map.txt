@@ -1,0 +1,7 @@
+es.dealeo.app-pngs-0 C:\Users\bjark\OneDrive\Desktop\dealeo\android\build\generated\res\pngs\release
+es.dealeo.app-resValues-1 C:\Users\bjark\OneDrive\Desktop\dealeo\android\build\generated\res\resValues\release
+es.dealeo.app-packageReleaseResources-2 C:\Users\bjark\OneDrive\Desktop\dealeo\android\build\intermediates\incremental\release\packageReleaseResources\merged.dir
+es.dealeo.app-packageReleaseResources-3 C:\Users\bjark\OneDrive\Desktop\dealeo\android\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
+es.dealeo.app-release-4 C:\Users\bjark\OneDrive\Desktop\dealeo\android\build\intermediates\merged_res\release\mergeReleaseResources
+es.dealeo.app-main-5 C:\Users\bjark\OneDrive\Desktop\dealeo\android\src\main\res
+es.dealeo.app-release-6 C:\Users\bjark\OneDrive\Desktop\dealeo\android\src\release\res

@@ -1,0 +1,69 @@
+{
+  "packageId": "es.dealeo.app",
+  "host": "dealeo.es",
+  "name": "Dealeo — Food & Drink Deals",
+  "launcherName": "Dealeo",
+  "display": "standalone",
+  "themeColor": "#F97316",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#F9FAFB",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://dealeo.es/icon-512.png",
+  "maskableIconUrl": "https://dealeo.es/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\Users\\bjark\\OneDrive\\Desktop\\dealeo\\android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "3",
+  "appVersionCode": 3,
+  "shortcuts": [
+    {
+      "name": "Live Deals",
+      "shortName": "Live",
+      "url": "https://dealeo.es/live",
+      "chosenIconUrl": "https://dealeo.es/icon-192.png"
+    },
+    {
+      "name": "Browse Deals",
+      "shortName": "Deals",
+      "url": "https://dealeo.es/deals",
+      "chosenIconUrl": "https://dealeo.es/icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://dealeo.es/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://dealeo.es/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [
+    {
+      "name": "android",
+      "value": "74:EB:58:E9:BF:3A:20:A7:51:8B:16:DB:46:0C:72:5E:31:29:61:6A:73:A2:E3:4B:3A:B4:34:54:37:41:AC:56"
+    }
+  ],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [],
+  "appVersion": "2"
+}

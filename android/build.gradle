@@ -1,0 +1,48 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdkVersion 36
+    namespace "es.dealeo.app"
+
+    defaultConfig {
+        applicationId "es.dealeo.app"
+        minSdkVersion 21
+        targetSdkVersion 36
+        versionCode 9
+        versionName "9"
+
+        resValue "string", "appName", "Dealeo — Food & Drink Deals"
+        resValue "string", "launcherName", "Dealeo"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('C:\\Users\\bjark\\OneDrive\\Desktop\\dealeo\\android.keystore')
+            storePassword 'Dealeo26Roberta90!'
+            keyAlias 'android'
+            keyPassword 'Dealeo26Roberta90!'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+}

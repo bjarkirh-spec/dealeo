@@ -1,0 +1,67 @@
+import type { Metadata } from "next";
+import { Geist } from "next/font/google";
+import "./globals.css";
+import { LanguageProvider } from "@/context/LanguageContext";
+import NotificationSetup from "@/components/NotificationSetup";
+import OfflineBanner from "@/components/OfflineBanner";
+import LangSync from "@/components/LangSync";
+import CookieBanner from "@/components/CookieBanner";
+
+const geist = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+// Set NEXT_PUBLIC_APP_URL in your environment (e.g. https://dealeo-rho.vercel.app) for correct OG tags
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.dealeo.es";
+
+export const metadata: Metadata = {
+  title: {
+    default: "Dealeo — Happy Hour & Food Deals in Alicante",
+    template: "%s | Dealeo Alicante",
+  },
+  description:
+    "Find the best happy hour deals, 2-for-1 drinks, and restaurant offers in Alicante. Live flash deals updated in real time. Free to use.",
+  keywords: [
+    "happy hour alicante", "deals alicante", "ofertas restaurantes alicante",
+    "food deals alicante", "bar deals alicante", "2 for 1 drinks alicante",
+    "descuentos bares alicante", "ofertas comida alicante", "dealeo",
+  ],
+  openGraph: {
+    title: "Dealeo — Happy Hour & Food Deals in Alicante",
+    description: "Find happy hours, 2-for-1s and live flash deals at bars and restaurants across Alicante. Free to use.",
+    url: APP_URL,
+    siteName: "Dealeo",
+    images: [{ url: `${APP_URL}/icon-512.png`, width: 512, height: 512 }],
+    type: "website",
+    locale: "en_GB",
+  },
+  twitter: {
+    card: "summary",
+    title: "Dealeo — Happy Hour & Food Deals in Alicante",
+    description: "Happy hours, 2-for-1s and live flash deals in Alicante. Free.",
+  },
+  alternates: {
+    canonical: APP_URL,
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className={`${geist.variable} antialiased`}>
+        <LanguageProvider>
+          <LangSync />
+          <NotificationSetup />
+          <OfflineBanner />
+          <CookieBanner />
+          {children}
+        </LanguageProvider>
+      </body>
+    </html>
+  );
+}

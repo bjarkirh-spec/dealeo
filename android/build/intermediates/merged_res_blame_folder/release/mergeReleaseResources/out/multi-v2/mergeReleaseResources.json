@@ -1,0 +1,62 @@
+{
+    "logs": [
+        {
+            "outputFile": "es.dealeo.app-release-4:/values_values.arsc.flat",
+            "map": [
+                {
+                    "source": "C:\\Users\\bjark\\OneDrive\\Desktop\\dealeo\\android\\src\\main\\res\\values\\colors.xml",
+                    "from": {
+                        "startLines": "16",
+                        "startColumns": "4",
+                        "startOffsets": "647",
+                        "endColumns": "53",
+                        "endOffsets": "696"
+                    },
+                    "to": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "53",
+                        "endOffsets": "104"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\bjark\\OneDrive\\Desktop\\dealeo\\android\\build\\generated\\res\\resValues\\release\\values\\gradleResValues.xml",
+                    "from": {
+                        "startLines": "6,8",
+                        "startColumns": "4,4",
+                        "startOffsets": "159,290",
+                        "endColumns": "88,68",
+                        "endOffsets": "243,354"
+                    },
+                    "to": {
+                        "startLines": "3,14",
+                        "startColumns": "4,4",
+                        "startOffsets": "109,449",
+                        "endColumns": "88,68",
+                        "endOffsets": "193,513"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\bjark\\OneDrive\\Desktop\\dealeo\\android\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "31",
+                        "startColumns": "2",
+                        "startOffsets": "1145",
+                        "endLines": "40",
+                        "endColumns": "11",
+                        "endOffsets": "1391"
+                    },
+                    "to": {
+                        "startLines": "4",
+                        "startColumns": "4",
+                        "startOffsets": "198",
+                        "endLines": "13",
+                        "endColumns": "11",
+                        "endOffsets": "444"
+                    }
+                }
+            ]
+        }
+    ]
+}

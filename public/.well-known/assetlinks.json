@@ -1,0 +1,11 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "es.dealeo.app",
+    "sha256_cert_fingerprints": [
+      "74:EB:58:E9:BF:3A:20:A7:51:8B:16:DB:46:0C:72:5E:31:29:61:6A:73:A2:E3:4B:3A:B4:34:54:37:41:AC:56",
+      "9D:8D:67:0C:7A:D0:F7:7C:AE:AA:51:31:2B:AD:64:E1:FB:F3:97:DF:11:09:9B:CE:C4:6C:E1:9C:53:2B:DE:03"
+    ]
+  }
+}]

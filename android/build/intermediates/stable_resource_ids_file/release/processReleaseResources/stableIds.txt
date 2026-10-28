@@ -1,0 +1,16 @@
+es.dealeo.app:xml/filepaths = 0x7f080000
+es.dealeo.app:string/launcherName = 0x7f070002
+es.dealeo.app:string/appName = 0x7f070000
+es.dealeo.app:mipmap/ic_launcher = 0x7f050000
+es.dealeo.app:layout/activity_main = 0x7f040000
+es.dealeo.app:id/webView = 0x7f030000
+es.dealeo.app:drawable/shortcut_legacy_background = 0x7f020004
+es.dealeo.app:raw/web_app_manifest = 0x7f060000
+es.dealeo.app:mipmap/ic_maskable = 0x7f050001
+es.dealeo.app:drawable/ic_notification_icon = 0x7f020001
+es.dealeo.app:drawable/$shortcut_legacy_background__0 = 0x7f020000
+es.dealeo.app:string/assetStatements = 0x7f070001
+es.dealeo.app:drawable/shortcut_1 = 0x7f020003
+es.dealeo.app:drawable/shortcut_0 = 0x7f020002
+es.dealeo.app:drawable/splash = 0x7f020005
+es.dealeo.app:color/shortcut_background = 0x7f010000

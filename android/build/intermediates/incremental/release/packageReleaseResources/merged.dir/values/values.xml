@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="shortcut_background">#F5F5F5</color>
+    <string name="appName" translatable="false">Dealeo — Food &amp; Drink Deals</string>
+    <string name="assetStatements">
+    [{
+        \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+        \"target\": {
+            \"namespace\": \"web\",
+            \"site\": \"https://dealeo.es\"
+        }
+    }]
+    
+  </string>
+    <string name="launcherName" translatable="false">Dealeo</string>
+</resources>
