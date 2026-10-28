@@ -31,8 +31,8 @@ export default function LandingPage() {
   --fg:#efefef; --fg-2:#9496a3; --fg-3:#55586a;
   --orange:#f97316; --teal:#0d9488; --amber:#f59e0b;
   --border:#20242f; --green:#4ade80;
-  --fd:'Barlow Condensed',system-ui,sans-serif;
-  --fb:'DM Sans',system-ui,sans-serif;
+  --fd:var(--font-barlow-condensed),system-ui,sans-serif;
+  --fb:var(--font-dm-sans),system-ui,sans-serif;
   color-scheme:dark;
 }
 @media(prefers-color-scheme:light){

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Barlow_Condensed, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
 import NotificationSetup from "@/components/NotificationSetup";
@@ -11,6 +11,18 @@ import { Analytics } from "@vercel/analytics/next";
 const geist = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+});
+
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow-condensed",
+  subsets: ["latin"],
+  weight: "900",
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 // Set NEXT_PUBLIC_APP_URL in your environment (e.g. https://dealeo-rho.vercel.app) for correct OG tags
@@ -59,9 +71,6 @@ export default function RootLayout({
         <meta name="theme-color" content="#0f1117" />
         <meta name="color-scheme" content="dark" />
         <meta name="google-site-verification" content="dINhmDZQaN_9eOfNB8lSu2z7JSChUy0qpzDdWmz8tIM" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@900&family=DM+Sans:wght@400;500;600&display=swap" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify({
@@ -121,7 +130,7 @@ export default function RootLayout({
           })}}
         />
       </head>
-      <body className={`${geist.variable} antialiased`}>
+      <body className={`${geist.variable} ${barlowCondensed.variable} ${dmSans.variable} antialiased`}>
         <LanguageProvider>
           <LangSync />
           <NotificationSetup />
