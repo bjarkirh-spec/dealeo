@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Dealeo — Food & Drink Deals",
     short_name: "Dealeo",
     description: "Exclusive food and drink deals near you in Alicante",
-    start_url: "/",
+    start_url: "/deals",
     display: "standalone",
     background_color: "#f9fafb",
     theme_color: "#f97316",

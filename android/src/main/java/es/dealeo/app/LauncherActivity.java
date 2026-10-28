@@ -19,7 +19,7 @@ import android.webkit.WebViewClient;
 public class LauncherActivity extends Activity {
 
     private WebView webView;
-    private static final String APP_URL = "https://dealeo.es";
+    private static final String APP_URL = "https://dealeo.es/deals";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
