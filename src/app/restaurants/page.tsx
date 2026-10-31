@@ -124,7 +124,7 @@ export default function RestaurantsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <p className="font-semibold text-white text-sm truncate">{r.name}</p>
-                      {r.is_approved && <span className="text-teal-500 text-xs flex-shrink-0">✓</span>}
+                      {r.email && <span className="text-teal-500 text-xs flex-shrink-0">✓</span>}
                       {liveDeals.length > 0 && (
                         <span className="flex items-center gap-0.5 bg-red-900/60 text-red-400 text-[10px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0">
                           <span className="w-1 h-1 bg-red-400 rounded-full animate-pulse" />
