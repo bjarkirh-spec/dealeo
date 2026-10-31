@@ -9,111 +9,66 @@ export async function POST(req: NextRequest) {
   const { error } = await resend.emails.send({
     from: "Dealeo <hello@dealeo.es>",
     to: email,
-    subject: `âœ… ${restaurantName} ya estÃ¡ en Dealeo! / is now live on Dealeo!`,
+    subject: `${restaurantName} is now live on Dealeo!`,
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
 
-        <!-- Header -->
         <div style="text-align:center;margin-bottom:32px;">
-          <div style="font-size:48px;margin-bottom:8px;">âœ…</div>
-          <h1 style="font-size:26px;font-weight:900;color:#111;margin:0;">Â¡Ya estÃ¡s en Dealeo! / You're live on Dealeo!</h1>
+          <h1 style="font-size:26px;font-weight:900;color:#111;margin:0;">You're live on Dealeo!</h1>
           <p style="color:#888;margin-top:8px;font-size:15px;">${restaurantName}</p>
         </div>
 
-        <!-- Divider label -->
-        <div style="text-align:center;margin-bottom:20px;">
-          <span style="background:#fff7ed;color:#f97316;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:99px;">EspaÃ±ol</span>
-        </div>
-
-        <!-- Spanish -->
-        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:16px;padding:20px;margin-bottom:24px;">
           <p style="font-size:15px;color:#333;line-height:1.6;margin:0;">
-            Tu local ya es visible para miles de clientes en Alicante. AquÃ­ tienes cÃ³mo sacarle el mÃ¡ximo partido.
+            Your venue is now approved and visible to customers nearby. Here's how to make the most of it.
           </p>
         </div>
+
         <div style="margin-bottom:24px;">
-          <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
-            <span style="font-size:22px;">ðŸ”´</span>
-            <div>
-              <p style="font-weight:700;color:#111;margin:0;font-size:14px;">Activa una oferta en vivo</p>
-              <p style="color:#888;margin:2px 0 0;font-size:13px;">Pulsa "En Vivo" en cualquier oferta y los clientes cercanos reciben una notificaciÃ³n al instante. Perfecto para noches tranquilas.</p>
-            </div>
+          <div style="margin-bottom:16px;">
+            <p style="font-weight:700;color:#111;margin:0 0 4px;font-size:14px;">1. Add your deals</p>
+            <p style="color:#666;margin:0;font-size:13px;line-height:1.5;">Log in to your dashboard and add all your happy hours, 2-for-1 offers, and food deals. The more deals you add, the more visible you are.</p>
           </div>
-          <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
-            <span style="font-size:22px;">ðŸ“Š</span>
-            <div>
-              <p style="font-weight:700;color:#111;margin:0;font-size:14px;">Sigue tus canjes en tiempo real</p>
-              <p style="color:#888;margin:2px 0 0;font-size:13px;">Tu panel muestra cada canje al momento â€” hoy, esta semana, en total.</p>
-            </div>
+          <div style="margin-bottom:16px;">
+            <p style="font-weight:700;color:#111;margin:0 0 4px;font-size:14px;">2. Go Live on quiet nights</p>
+            <p style="color:#666;margin:0;font-size:13px;line-height:1.5;">Tap "Go Live" on any deal and nearby customers get an instant push notification. Perfect for filling empty seats on slow evenings.</p>
           </div>
-          <div style="display:flex;align-items:flex-start;gap:12px;">
-            <span style="font-size:22px;">ðŸŽ</span>
-            <div>
-              <p style="font-weight:700;color:#111;margin:0;font-size:14px;">Local Fundador â€” gratis durante el lanzamiento</p>
-              <p style="color:#888;margin:2px 0 0;font-size:13px;">Eres uno de los primeros 50 locales. Gratis ahora y con precio bloqueado mientras sigas con nosotros.</p>
-            </div>
+          <div style="margin-bottom:16px;">
+            <p style="font-weight:700;color:#111;margin:0 0 4px;font-size:14px;">3. Track redemptions in real time</p>
+            <p style="color:#666;margin:0;font-size:13px;line-height:1.5;">Your dashboard shows every redemption live &mdash; today, this week, all time.</p>
+          </div>
+          <div>
+            <p style="font-weight:700;color:#111;margin:0 0 4px;font-size:14px;">Founding Venue &mdash; free during launch</p>
+            <p style="color:#666;margin:0;font-size:13px;line-height:1.5;">You're one of the first venues on Dealeo. Free now and locked in at a founder rate for as long as you stay.</p>
           </div>
         </div>
 
-        <!-- Spanish CTA -->
         <div style="text-align:center;margin-bottom:32px;">
-          <a href="https://www.dealeo.es/business/dashboard" style="background:#f97316;color:#fff;font-weight:900;font-size:15px;padding:14px 36px;border-radius:14px;text-decoration:none;display:inline-block;">Abrir mi panel â†’</a>
+          <a href="https://www.dealeo.es/business/dashboard" style="background:#f97316;color:#fff;font-weight:900;font-size:15px;padding:14px 36px;border-radius:14px;text-decoration:none;display:inline-block;">Open my dashboard &rarr;</a>
         </div>
 
-        <!-- Divider -->
         <div style="border-top:1px solid #f0f0f0;margin:28px 0;"></div>
 
-        <!-- English label -->
-        <div style="text-align:center;margin-bottom:20px;">
-          <span style="background:#fff7ed;color:#f97316;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:99px;">English</span>
-        </div>
-
-        <!-- English -->
-        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:16px;padding:20px;margin-bottom:24px;">
           <p style="font-size:15px;color:#333;line-height:1.6;margin:0;">
-            Your venue is now visible to thousands of customers in Alicante. Here's how to make the most of it.
+            Tu local ya est&aacute; aprobado y visible para los clientes cercanos. A&ntilde;ade tus ofertas desde el panel para aparecer en la app.
           </p>
         </div>
-        <div style="margin-bottom:24px;">
-          <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
-            <span style="font-size:22px;">ðŸ”´</span>
-            <div>
-              <p style="font-weight:700;color:#111;margin:0;font-size:14px;">Go Live to fill empty seats</p>
-              <p style="color:#888;margin:2px 0 0;font-size:13px;">Tap "Go Live" on any deal and nearby customers get an instant push notification. Great for quiet evenings.</p>
-            </div>
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
-            <span style="font-size:22px;">ðŸ“Š</span>
-            <div>
-              <p style="font-weight:700;color:#111;margin:0;font-size:14px;">Track your redemptions in real time</p>
-              <p style="color:#888;margin:2px 0 0;font-size:13px;">Your dashboard shows every redemption live â€” today, this week, all time.</p>
-            </div>
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:12px;">
-            <span style="font-size:22px;">ðŸŽ</span>
-            <div>
-              <p style="font-weight:700;color:#111;margin:0;font-size:14px;">Founding Venue â€” free during launch</p>
-              <p style="color:#888;margin:2px 0 0;font-size:13px;">You're one of the first 50 venues. Free now and locked in at half the standard rate for as long as you stay.</p>
-            </div>
-          </div>
-        </div>
 
-        <!-- English CTA -->
         <div style="text-align:center;margin-bottom:32px;">
-          <a href="https://www.dealeo.es/business/dashboard" style="background:#f97316;color:#fff;font-weight:900;font-size:15px;padding:14px 36px;border-radius:14px;text-decoration:none;display:inline-block;">Open my dashboard â†’</a>
+          <a href="https://www.dealeo.es/business/dashboard" style="background:#f97316;color:#fff;font-weight:900;font-size:15px;padding:14px 36px;border-radius:14px;text-decoration:none;display:inline-block;">Abrir mi panel &rarr;</a>
         </div>
 
-        <!-- Support -->
         <div style="background:#f9fafb;border-radius:12px;padding:16px;text-align:center;margin-bottom:24px;">
           <p style="font-size:13px;color:#888;margin:0;">
-            Â¿Preguntas? / Questions?<br/>
-            WhatsApp: <a href="https://wa.me/34643731206" style="color:#f97316;font-weight:700;">+34 643 731 206</a> Â·
+            Questions? / &iquest;Preguntas?<br/>
+            WhatsApp: <a href="https://wa.me/34643731206" style="color:#f97316;font-weight:700;">+34 643 731 206</a> &middot;
             <a href="mailto:hello@dealeo.es" style="color:#f97316;font-weight:700;">hello@dealeo.es</a>
           </p>
         </div>
 
         <p style="color:#bbb;font-size:12px;text-align:center;margin:0;">
-          Dealeo Â· Alicante, EspaÃ±a Â· <a href="https://www.dealeo.es/privacy" style="color:#bbb;">Privacidad / Privacy</a>
+          Dealeo &middot; <a href="https://www.dealeo.es/privacy" style="color:#bbb;">Privacy</a>
         </p>
       </div>
     `,
@@ -122,4 +77,3 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error }, { status: 500 });
   return NextResponse.json({ sent: true });
 }
-

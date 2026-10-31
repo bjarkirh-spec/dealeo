@@ -17,6 +17,14 @@ export default function BusinessSignup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [venueCount, setVenueCount] = useState<number | null>(null);
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+
+  // Step 3 — first deal
+  const [dealTitle, setDealTitle] = useState("");
+  const [dealCategory, setDealCategory] = useState("happyHour");
+  const [dealLabel, setDealLabel] = useState("");
+  const [dealFrom, setDealFrom] = useState("");
+  const [dealUntil, setDealUntil] = useState("");
 
   useEffect(() => {
     supabase.from("restaurants").select("id", { count: "exact", head: true }).then(({ count }) => {
@@ -116,6 +124,29 @@ export default function BusinessSignup() {
       body: JSON.stringify({ venueName: name, venueEmail: email, city, address, restaurantId: restaurantData?.id }),
     }).catch(() => {/* non-critical */});
 
+    setRestaurantId(restaurantData?.id ?? null);
+    setLoading(false);
+    setStep(3);
+  };
+
+  const handleDeal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!restaurantId || !dealTitle || !dealLabel) return;
+    setLoading(true);
+    setError("");
+    await supabase.from("deals").insert({
+      restaurant_id: restaurantId,
+      title: dealTitle,
+      category: dealCategory,
+      discount_label: dealLabel,
+      valid_from: dealFrom || null,
+      valid_until: dealUntil || null,
+      deal_type: "redeemable",
+      source: "venue",
+      is_active: true,
+      is_live: false,
+    });
+    setLoading(false);
     router.push("/business/onboarding");
   };
 
@@ -153,6 +184,7 @@ export default function BusinessSignup() {
           <div className="flex items-center gap-2 mb-6">
             <div className={`flex-1 h-1.5 rounded-full ${step >= 1 ? "bg-orange-500" : "bg-gray-200"}`} />
             <div className={`flex-1 h-1.5 rounded-full ${step >= 2 ? "bg-orange-500" : "bg-gray-200"}`} />
+            <div className={`flex-1 h-1.5 rounded-full ${step >= 3 ? "bg-orange-500" : "bg-gray-200"}`} />
           </div>
 
           {step === 1 ? (
@@ -265,14 +297,14 @@ export default function BusinessSignup() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">{lang === "es" ? "Ciudad *" : "City *"}</label>
-                  <select
+                  <input
+                    type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 bg-white"
-                  >
-                    <option value="Alicante">Alicante</option>
-                    <option value="Benidorm">Benidorm</option>
-                  </select>
+                    placeholder="e.g. Alicante, Benidorm, Rome..."
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                  />
                 </div>
 
                 <div>
@@ -348,7 +380,90 @@ export default function BusinessSignup() {
                 </p>
               </form>
             </>
-          )}
+          ) : step === 3 ? (
+            <>
+              <h1 className="text-xl font-black text-gray-900 mb-1">{lang === "es" ? "Añade tu primera oferta" : "Add your first deal"}</h1>
+              <p className="text-sm text-gray-500 mb-6">
+                {lang === "es"
+                  ? "Paso 3 de 3 — Necesitas al menos una oferta para aparecer en la app"
+                  : "Step 3 of 3 — You need at least one deal to appear in the app"}
+              </p>
+              <form onSubmit={handleDeal} className="flex flex-col gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{lang === "es" ? "Nombre de la oferta *" : "Deal title *"}</label>
+                  <input
+                    type="text"
+                    value={dealTitle}
+                    onChange={(e) => setDealTitle(e.target.value)}
+                    placeholder={lang === "es" ? "p.ej. Happy Hour — Cócteles 2x1" : "e.g. Happy Hour — 2-for-1 Cocktails"}
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{lang === "es" ? "Categoría *" : "Category *"}</label>
+                  <select
+                    value={dealCategory}
+                    onChange={(e) => setDealCategory(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 bg-white"
+                  >
+                    <option value="happyHour">{lang === "es" ? "Happy Hour" : "Happy Hour"}</option>
+                    <option value="twoForOne">{lang === "es" ? "2 por 1" : "2-for-1"}</option>
+                    <option value="drinks">{lang === "es" ? "Bebidas" : "Drinks"}</option>
+                    <option value="food">{lang === "es" ? "Comida" : "Food"}</option>
+                    <option value="experiences">{lang === "es" ? "Experiencias" : "Experiences"}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{lang === "es" ? "Precio / etiqueta *" : "Price / label *"}</label>
+                  <input
+                    type="text"
+                    value={dealLabel}
+                    onChange={(e) => setDealLabel(e.target.value)}
+                    placeholder={lang === "es" ? "p.ej. 2 cócteles por €10" : "e.g. 2 cocktails for €10"}
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">{lang === "es" ? "Desde (hora)" : "From (time)"}</label>
+                    <input
+                      type="time"
+                      value={dealFrom}
+                      onChange={(e) => setDealFrom(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">{lang === "es" ? "Hasta (hora)" : "Until (time)"}</label>
+                    <input
+                      type="time"
+                      value={dealUntil}
+                      onChange={(e) => setDealUntil(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    />
+                  </div>
+                </div>
+                {error && <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">{error}</div>}
+                <button
+                  type="submit"
+                  disabled={loading || !dealTitle || !dealLabel}
+                  className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold py-3 rounded-xl transition-colors"
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      {lang === "es" ? "Guardando..." : "Saving..."}
+                    </span>
+                  ) : (lang === "es" ? "Publicar mi local →" : "Go live →")}
+                </button>
+                <p className="text-xs text-gray-400 text-center">
+                  {lang === "es" ? "Puedes añadir más ofertas desde tu panel" : "You can add more deals from your dashboard"}
+                </p>
+              </form>
+            </>
+          ) : null}
         </div>
       </div>
     </div>
