@@ -6,6 +6,17 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { DbRestaurant, DbDealTip } from "@/lib/types";
 
+interface PriceReport {
+  id: string;
+  deal_id: string;
+  suggested_price: string | null;
+  photo_url: string | null;
+  note: string | null;
+  status: string;
+  created_at: string;
+  deals?: { title: string; discount_label: string; restaurants?: { name: string } };
+}
+
 const ADMIN_EMAIL = "bjarkirh@gmail.com";
 
 export default function AdminPage() {
@@ -16,6 +27,7 @@ export default function AdminPage() {
   const [approved, setApproved] = useState<DbRestaurant[]>([]);
   const [tips, setTips] = useState<DbDealTip[]>([]);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [priceReports, setPriceReports] = useState<PriceReport[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -25,7 +37,7 @@ export default function AdminPage() {
         return;
       }
       setAuthed(true);
-      await Promise.all([fetchRestaurants(), fetchTips()]);
+      await Promise.all([fetchRestaurants(), fetchTips(), fetchPriceReports()]);
       setLoading(false);
     });
   }, [router]);
@@ -40,6 +52,27 @@ export default function AdminPage() {
     if (!data) return;
     setPending(data.filter((r: DbRestaurant) => !r.is_approved));
     setApproved(data.filter((r: DbRestaurant) => r.is_approved));
+  }
+
+  async function fetchPriceReports() {
+    const { data } = await supabase
+      .from("price_reports")
+      .select("*, deals(title, discount_label, restaurants(name))")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+    if (data) setPriceReports(data as PriceReport[]);
+  }
+
+  async function approvePriceReport(report: PriceReport) {
+    if (!report.suggested_price) return;
+    await supabase.from("deals").update({ discount_label: report.suggested_price }).eq("id", report.deal_id);
+    await supabase.from("price_reports").update({ status: "approved" }).eq("id", report.id);
+    setPriceReports((r) => r.filter((x) => x.id !== report.id));
+  }
+
+  async function dismissPriceReport(id: string) {
+    await supabase.from("price_reports").update({ status: "dismissed" }).eq("id", id);
+    setPriceReports((r) => r.filter((x) => x.id !== id));
   }
 
   async function fetchTips() {
@@ -120,6 +153,55 @@ export default function AdminPage() {
       </header>
 
       <div className="max-w-3xl mx-auto px-4 py-8">
+        {/* Price Reports */}
+        {priceReports.length > 0 && (
+          <section className="mb-10">
+            <h2 className="font-black text-gray-900 text-lg mb-4">
+              💰 Price Reports
+              <span className="ml-2 bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">{priceReports.length}</span>
+            </h2>
+            <div className="flex flex-col gap-3">
+              {priceReports.map((r) => (
+                <div key={r.id} className="bg-white rounded-2xl border border-orange-100 shadow-sm p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900">{r.deals?.restaurants?.name ?? "Unknown venue"}</p>
+                      <p className="text-sm text-gray-700 mt-0.5">{r.deals?.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Current: <span className="font-medium">{r.deals?.discount_label}</span></p>
+                      {r.suggested_price && (
+                        <p className="text-xs text-green-700 font-bold mt-1">Suggested: {r.suggested_price}</p>
+                      )}
+                      {r.note && <p className="text-xs text-gray-500 italic mt-1">{r.note}</p>}
+                      {r.photo_url && (
+                        <a href={r.photo_url} target="_blank" rel="noreferrer" className="text-xs text-teal-600 underline mt-1 block">
+                          📷 View photo
+                        </a>
+                      )}
+                      <p className="text-xs text-gray-300 mt-1">{new Date(r.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      {r.suggested_price && (
+                        <button
+                          onClick={() => approvePriceReport(r)}
+                          className="text-xs bg-green-500 hover:bg-green-600 text-white font-bold px-3 py-1.5 rounded-xl transition-colors"
+                        >
+                          ✓ Update price
+                        </button>
+                      )}
+                      <button
+                        onClick={() => dismissPriceReport(r.id)}
+                        className="text-xs text-gray-400 hover:text-red-400 border border-gray-200 hover:border-red-200 px-3 py-1.5 rounded-xl transition-colors"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Deal Tips */}
         {tips.length > 0 && (
           <section className="mb-10">

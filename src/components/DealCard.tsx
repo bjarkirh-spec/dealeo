@@ -5,28 +5,79 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useLayoutEffect, useCallback } from "react";
 
 function ReportButton({ dealId, dealTitle, lang }: { dealId: string | null; dealTitle: string; lang: string }) {
-  const [state, setState] = useState<"idle" | "sent">("idle");
+  const [state, setState] = useState<"idle" | "open" | "sending" | "sent">("idle");
+  const [price, setPrice] = useState("");
+  const [note, setNote] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
 
-  const report = useCallback(async (e: React.MouseEvent) => {
+  const open = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!dealId || state !== "idle") return;
-    setState("sent");
+    setState("open");
+  };
+
+  const submit = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!dealId || state === "sending") return;
+    setState("sending");
     try {
-      await fetch("/api/report-deal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dealId, dealTitle }),
-      });
-    } catch {}
-  }, [dealId, dealTitle, state]);
+      const body = new FormData();
+      body.append("dealId", dealId);
+      body.append("dealTitle", dealTitle);
+      if (price) body.append("suggestedPrice", price);
+      if (note) body.append("note", note);
+      if (photo) body.append("photo", photo);
+      await fetch("/api/report-deal", { method: "POST", body });
+      setState("sent");
+    } catch {
+      setState("open");
+    }
+  }, [dealId, dealTitle, price, note, photo, state]);
 
   if (state === "sent") {
-    return <span className="text-xs text-green-500 font-medium">✓ {lang === "es" ? "Reportado" : lang === "it" ? "Segnalato, grazie" : "Reported, thanks"}</span>;
+    return <span className="text-xs text-green-500 font-medium">✓ {lang === "es" ? "Gracias, lo revisamos" : lang === "it" ? "Grazie, controlliamo" : "Thanks, we'll check it"}</span>;
   }
+
+  if (state === "idle") {
+    return (
+      <button onClick={open} className="text-xs text-gray-600 hover:text-orange-400 transition-colors underline underline-offset-2">
+        {lang === "es" ? "Precio incorrecto?" : lang === "it" ? "Prezzo errato?" : "Wrong price?"}
+      </button>
+    );
+  }
+
   return (
-    <button onClick={report} className="text-xs text-gray-600 hover:text-orange-400 transition-colors underline underline-offset-2">
-      {lang === "es" ? "Precio incorrecto?" : lang === "it" ? "Prezzo errato?" : "Wrong price?"}
-    </button>
+    <div className="flex flex-col gap-1.5 w-full mt-1" onClick={(e) => e.stopPropagation()}>
+      <input
+        type="text"
+        placeholder={lang === "es" ? "Precio correcto (ej: €5)" : lang === "it" ? "Prezzo corretto (es: €5)" : "Correct price (e.g. €5)"}
+        value={price}
+        onChange={(e) => setPrice(e.target.value)}
+        className="text-xs bg-gray-800 text-white border border-gray-700 rounded-lg px-2 py-1.5 w-full outline-none focus:border-teal-500"
+      />
+      <input
+        type="text"
+        placeholder={lang === "es" ? "Nota opcional" : lang === "it" ? "Nota opzionale" : "Optional note"}
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        className="text-xs bg-gray-800 text-white border border-gray-700 rounded-lg px-2 py-1.5 w-full outline-none focus:border-teal-500"
+      />
+      <label className="text-xs text-gray-500 cursor-pointer hover:text-gray-300 transition-colors">
+        📷 {photo ? photo.name : (lang === "es" ? "Foto del ticket (opcional)" : lang === "it" ? "Foto dello scontrino (opz.)" : "Photo of bill (optional)")}
+        <input type="file" accept="image/*" className="hidden" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
+      </label>
+      <div className="flex gap-2">
+        <button
+          onClick={submit}
+          disabled={state === "sending"}
+          className="text-xs bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
+        >
+          {state === "sending" ? "..." : (lang === "es" ? "Enviar" : lang === "it" ? "Invia" : "Send")}
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); setState("idle"); }} className="text-xs text-gray-500 hover:text-gray-300 px-2 py-1.5">
+          {lang === "es" ? "Cancelar" : lang === "it" ? "Annulla" : "Cancel"}
+        </button>
+      </div>
+    </div>
   );
 }
 import type { DbDeal, Deal } from "@/lib/types";
