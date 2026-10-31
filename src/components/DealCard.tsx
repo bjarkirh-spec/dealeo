@@ -146,12 +146,13 @@ const CATEGORY_COLORS: Record<string, string> = {
   experiences: "bg-yellow-50 text-yellow-700",
 };
 
-const CATEGORY_PLACEHOLDER: Record<string, { gradient: string; emoji: string }> = {
-  happyHour:   { gradient: "from-teal-900 to-gray-900",   emoji: "🍹" },
-  twoForOne:   { gradient: "from-purple-900 to-gray-900", emoji: "🍺" },
-  drinks:      { gradient: "from-blue-900 to-gray-900",   emoji: "🥂" },
-  food:        { gradient: "from-green-900 to-gray-900",  emoji: "🍽️" },
-  experiences: { gradient: "from-orange-900 to-gray-900", emoji: "🎉" },
+const CATEGORY_PLACEHOLDER: Record<string, { gradient: string; emoji: string; photo: string }> = {
+  happyHour:   { gradient: "from-teal-900 to-gray-900",   emoji: "🍹", photo: "https://images.unsplash.com/photo-1575023782549-62ca0d244b39?w=300&auto=format&fit=crop&q=80" },
+  twoForOne:   { gradient: "from-purple-900 to-gray-900", emoji: "🍺", photo: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=300&auto=format&fit=crop&q=80" },
+  drinks:      { gradient: "from-blue-900 to-gray-900",   emoji: "🥂", photo: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=300&auto=format&fit=crop&q=80" },
+  food:        { gradient: "from-green-900 to-gray-900",  emoji: "🍽️", photo: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300&auto=format&fit=crop&q=80" },
+  experiences: { gradient: "from-orange-900 to-gray-900", emoji: "🎉", photo: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=300&auto=format&fit=crop&q=80" },
+  nightlife:   { gradient: "from-violet-900 to-gray-900", emoji: "🎶", photo: "https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=300&auto=format&fit=crop&q=80" },
 };
 
 function optimizeImg(url: string | null, w = 600): string | null {
@@ -260,9 +261,7 @@ export default function DealCard({ deal, fromDb, goingCount }: DealCardProps) {
           {imageUrl ? (
             <img src={imageUrl} alt={restaurantName || ""} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
           ) : (
-            <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0 bg-gradient-to-br ${CATEGORY_PLACEHOLDER[category]?.gradient ?? "from-gray-800 to-gray-900"}`}>
-              {CATEGORY_PLACEHOLDER[category]?.emoji ?? "🍹"}
-            </div>
+            <img src={CATEGORY_PLACEHOLDER[category]?.photo ?? CATEGORY_PLACEHOLDER.drinks.photo} alt={category} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
           )}
           <div className="flex-1 min-w-0">
             <h3 className="font-black text-white text-lg leading-tight">{title}</h3>
@@ -291,9 +290,7 @@ export default function DealCard({ deal, fromDb, goingCount }: DealCardProps) {
           {imageUrl ? (
             <img src={imageUrl} alt={restaurantName || ""} className="w-full h-full object-cover" />
           ) : (
-            <div className={`w-full h-full flex items-center justify-center text-5xl bg-gradient-to-br ${CATEGORY_PLACEHOLDER[category]?.gradient ?? "from-gray-800 to-gray-900"}`}>
-              {CATEGORY_PLACEHOLDER[category]?.emoji ?? "🍹"}
-            </div>
+            <img src={CATEGORY_PLACEHOLDER[category]?.photo ?? CATEGORY_PLACEHOLDER.drinks.photo} alt={category} className="w-full h-full object-cover" />
           )}
         </div>
 
