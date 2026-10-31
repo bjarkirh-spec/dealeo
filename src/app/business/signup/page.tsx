@@ -109,6 +109,13 @@ export default function BusinessSignup() {
       }).catch(() => {/* non-critical */});
     }
 
+    // 6. Notify admin of new venue signup
+    fetch("/api/email/venue-signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ venueName: name, venueEmail: email, city, address, restaurantId: restaurantData?.id }),
+    }).catch(() => {/* non-critical */});
+
     router.push("/business/onboarding");
   };
 
