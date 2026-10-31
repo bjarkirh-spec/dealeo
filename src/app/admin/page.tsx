@@ -68,7 +68,13 @@ export default function AdminPage() {
 
   async function approve(id: string) {
     setActionId(id);
-    await adminFetch("approve", id);
+    const res = await adminFetch("approve", id);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert(`Approve failed: ${res.status} — ${body.error ?? "unknown error"}`);
+      setActionId(null);
+      return;
+    }
 
     // Send approval email to the restaurant
     const restaurant = pending.find((r) => r.id === id);
