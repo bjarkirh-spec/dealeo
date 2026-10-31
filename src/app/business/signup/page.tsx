@@ -190,7 +190,7 @@ export default function BusinessSignup() {
           {step === 1 ? (
             <>
               <h1 className="text-xl font-black text-gray-900 mb-1">{lang === "es" ? "Añade tu local a Dealeo" : "List your venue on Dealeo"}</h1>
-              <p className="text-sm text-gray-500 mb-4">{lang === "es" ? "Paso 1 de 2 — Crea tu cuenta" : "Step 1 of 2 — Create your account"}</p>
+              <p className="text-sm text-gray-500 mb-4">{lang === "es" ? "Paso 1 de 3 — Crea tu cuenta" : "Step 1 of 3 — Create your account"}</p>
               <div className="flex gap-3 mb-5 text-xs text-gray-500">
                 <span className="flex items-center gap-1">✅ {lang === "es" ? "Gratis" : "Free"}</span>
                 <span className="flex items-center gap-1">✅ {lang === "es" ? "Sin contratos" : "No contracts"}</span>
