@@ -71,6 +71,11 @@ export default function RootLayout({
         <meta name="theme-color" content="#0f1117" />
         <meta name="color-scheme" content="dark" />
         <meta name="google-site-verification" content="dINhmDZQaN_9eOfNB8lSu2z7JSChUy0qpzDdWmz8tIM" />
+        {/* iOS PWA */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Dealeo" />
+        <link rel="apple-touch-icon" href="/icon-512.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify({
