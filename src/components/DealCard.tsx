@@ -61,8 +61,8 @@ function ReportButton({ dealId, dealTitle, lang }: { dealId: string | null; deal
         onChange={(e) => setNote(e.target.value)}
         className="text-xs bg-gray-800 text-white border border-gray-700 rounded-lg px-2 py-1.5 w-full outline-none focus:border-teal-500"
       />
-      <label className="text-xs text-gray-500 cursor-pointer hover:text-gray-300 transition-colors">
-        📷 {photo ? photo.name : (lang === "es" ? "Foto del ticket (opcional)" : lang === "it" ? "Foto dello scontrino (opz.)" : "Photo of bill (optional)")}
+      <label className={`text-xs cursor-pointer border rounded-lg px-2 py-1.5 w-full flex items-center gap-1.5 transition-colors ${photo ? "border-teal-500 text-teal-400 bg-teal-900/20" : "border-gray-600 text-gray-400 hover:border-gray-400 hover:text-gray-300"}`}>
+        📷 {photo ? photo.name : (lang === "es" ? "Adjuntar foto del ticket (opcional)" : lang === "it" ? "Allega foto scontrino (opz.)" : "Attach photo of bill (optional)")}
         <input type="file" accept="image/*" className="hidden" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
       </label>
       <div className="flex gap-2">
