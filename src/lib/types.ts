@@ -48,7 +48,7 @@ export interface DbDeal {
   valid_from: string | null;
   valid_to: string | null;
   image_url: string | null;
-  source: "venue" | "community" | "verified" | null;
+  source: "venue" | "community" | "verified" | "admin" | null;
   created_at: string;
   // joined fields
   restaurants?: DbRestaurant;
