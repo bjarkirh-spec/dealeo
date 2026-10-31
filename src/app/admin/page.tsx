@@ -33,7 +33,7 @@ export default function AdminPage() {
     supabase.auth.getSession().then(async ({ data }) => {
       const email = data.session?.user?.email ?? "";
       if (!ADMIN_EMAIL || email !== ADMIN_EMAIL) {
-        router.replace("/");
+        router.replace("/login?next=/admin");
         return;
       }
       setAuthed(true);

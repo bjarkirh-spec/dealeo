@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 export default function LoginPage() {
   const router = useRouter();
   const { lang } = useLang();
+  const nextUrl = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("next") ?? "/profile" : "/profile";
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -83,7 +84,7 @@ export default function LoginPage() {
       setError(error.message);
     } else {
       setResetSuccess(true);
-      setTimeout(() => router.push("/profile"), 2000);
+      setTimeout(() => router.push(nextUrl), 2000);
     }
     setLoading(false);
   };
@@ -104,12 +105,12 @@ export default function LoginPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, lang }),
         });
-        router.push("/profile");
+        router.push(nextUrl);
       } else {
         // Supabase may require email confirmation — try to sign in anyway
         const { error: signInError } = await signIn(email, password);
         if (!signInError) {
-          router.push("/profile");
+          router.push(nextUrl);
         } else if (signInError.message.toLowerCase().includes("confirm") || signInError.message.toLowerCase().includes("verif")) {
           // Email confirmation required — show friendly message
           setSuccessMsg(lang === "es"
@@ -125,7 +126,7 @@ export default function LoginPage() {
       if (error) {
         setError(lang === "es" ? "Email o contraseña incorrectos" : "Incorrect email or password");
       } else {
-        router.push("/profile");
+        router.push(nextUrl);
       }
     }
 
