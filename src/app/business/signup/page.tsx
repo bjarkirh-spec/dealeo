@@ -251,7 +251,7 @@ export default function BusinessSignup() {
                 </button>
               </form>
             </>
-          ) : (
+          ) : step === 2 ? (
             <>
               <button
                 onClick={() => { setStep(1); setError(""); }}
@@ -260,7 +260,7 @@ export default function BusinessSignup() {
                 ← Back
               </button>
               <h1 className="text-xl font-black text-gray-900 mb-1">{lang === "es" ? "Tu local" : "Your Venue"}</h1>
-              <p className="text-sm text-gray-500 mb-6">{lang === "es" ? "Paso 2 de 2 — Cuéntanos sobre tu local" : "Step 2 of 2 — Tell us about your venue"}</p>
+              <p className="text-sm text-gray-500 mb-6">{lang === "es" ? "Paso 2 de 3 — Cuéntanos sobre tu local" : "Step 2 of 3 — Tell us about your venue"}</p>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 {/* Emoji picker */}
