@@ -156,9 +156,9 @@ export default function MapPage() {
             </button>
           ))}
         </div>
-        {/* Amenity filter */}
+        {/* Amenity filter — only show tags that exist on at least one venue */}
         <div className="flex gap-2 overflow-x-auto pb-1 mt-2 scrollbar-hide">
-          {AMENITY_FILTERS.map(({ value, label }) => (
+          {AMENITY_FILTERS.filter(({ value }) => restaurants.some((r) => r.amenities?.includes(value))).map(({ value, label }) => (
             <button
               key={value}
               onClick={() => { setAmenityFilter(amenityFilter === value ? null : value); setSelected(null); setCategory("all"); }}
