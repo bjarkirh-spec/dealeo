@@ -196,7 +196,7 @@ export default function DealCard({ deal, fromDb, goingCount }: DealCardProps) {
   const isRedeemable = db ? db.deal_type !== "informational" : true;
   const isSoldOut = isRedeemable && db?.max_redemptions && (db.redemptions_count || 0) >= db.max_redemptions;
   // 'venue' source = posted by bar owner. Only show badge when restaurant also has a user_id (actually signed up)
-  const isTip = db ? (db.source !== "venue" && db.source !== "admin") : false;
+  const isTip = db ? (db.source !== "venue") : false;
   const isVenueVerified = db ? (db.source === "venue" && !!(db.restaurants as { user_id?: string } | null)?.user_id) : false;
   const category = db ? db.category : "food";
 
