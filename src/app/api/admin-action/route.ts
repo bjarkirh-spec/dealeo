@@ -9,14 +9,19 @@ const getSupabaseAdmin = () => createClient(
 );
 
 export async function POST(req: NextRequest) {
-  // Verify caller is the admin
+  // Verify caller is the admin using the anon client + their JWT
   const authHeader = req.headers.get("authorization") ?? "";
   const token = authHeader.replace("Bearer ", "");
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: { user }, error: authError } = await getSupabaseAdmin().auth.getUser(token);
+  const userClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${token}` } } }
+  );
+  const { data: { user }, error: authError } = await userClient.auth.getUser();
   if (authError || !user || user.email !== ADMIN_EMAIL) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized", detail: authError?.message }, { status: 401 });
   }
 
   const { action, id } = await req.json();

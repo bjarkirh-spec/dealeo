@@ -214,16 +214,26 @@ export default function AdminPage() {
                 <div key={tip.id} className="bg-white rounded-2xl border border-amber-100 shadow-sm p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900">{tip.venue_name} <span className="text-gray-400 font-normal text-sm">· {tip.venue_city}</span></p>
-                      <p className="text-sm text-gray-700 mt-1">{tip.deal_description}</p>
-                      {tip.deal_days && <p className="text-xs text-gray-500 mt-1">📅 {tip.deal_days}</p>}
-                      {tip.deal_time && <p className="text-xs text-gray-500">🕐 {tip.deal_time}</p>}
-                      {tip.notes && <p className="text-xs text-gray-400 italic mt-1">{tip.notes}</p>}
-                      <p className="text-xs text-gray-300 mt-1">{new Date(tip.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-bold text-gray-900">{tip.venue_name}</p>
+                        <span className="text-gray-400 text-sm">{tip.venue_city}</span>
+                        <a
+                          href={`https://www.google.com/search?q=${encodeURIComponent(`${tip.venue_name} ${tip.venue_city} bar`)}`}
+                          target="_blank" rel="noreferrer"
+                          className="text-xs text-teal-600 underline"
+                        >
+                          Search Google
+                        </a>
+                      </div>
+                      <p className="text-sm text-gray-800 font-medium mt-1">Deal: {tip.deal_description || <span className="text-gray-400 font-normal">Not specified</span>}</p>
+                      {tip.deal_days && <p className="text-xs text-gray-500 mt-1">📅 Days: {tip.deal_days}</p>}
+                      {tip.deal_time && <p className="text-xs text-gray-500">🕐 Time: {tip.deal_time}</p>}
+                      {tip.notes && <p className="text-xs text-gray-500 italic mt-1">Note: {tip.notes}</p>}
+                      <p className="text-xs text-gray-300 mt-1">{new Date(tip.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
                     </div>
                     <button
                       onClick={() => dismissTip(tip.id)}
-                      className="text-xs text-gray-400 hover:text-red-400 border border-gray-200 hover:border-red-200 px-3 py-1.5 rounded-xl transition-colors"
+                      className="text-xs text-gray-400 hover:text-red-400 border border-gray-200 hover:border-red-200 px-3 py-1.5 rounded-xl transition-colors flex-shrink-0"
                     >
                       Dismiss
                     </button>
