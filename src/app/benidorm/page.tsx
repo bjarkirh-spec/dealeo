@@ -166,12 +166,12 @@ export default function BenidormPage() {
           <h2 className="text-2xl font-black text-gray-900 mb-6">What you&apos;ll find on Dealeo</h2>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { emoji: "🍺", label: "Happy Hours", href: "/deals?cat=happyHour" },
-              { emoji: "2️⃣", label: "2-for-1 Drinks", href: "/deals?cat=twoForOne" },
-              { emoji: "🍔", label: "Food Deals", href: "/deals?cat=food" },
+              { emoji: "🍺", label: "Happy Hours", href: "/deals?category=happyHour" },
+              { emoji: "2️⃣", label: "2-for-1 Drinks", href: "/deals?category=twoForOne" },
+              { emoji: "🍔", label: "Food Deals", href: "/deals?category=food" },
               { emoji: "🔴", label: "Live Flash Deals", href: "/live" },
-              { emoji: "🎉", label: "Experiences", href: "/deals?cat=experiences" },
-              { emoji: "🥂", label: "Drink Specials", href: "/deals?cat=drinks" },
+              { emoji: "🎉", label: "Experiences", href: "/deals?category=experiences" },
+              { emoji: "🥂", label: "Drink Specials", href: "/deals?category=drinks" },
             ].map(({ emoji, label, href }) => (
               <Link
                 key={label}
@@ -212,6 +212,17 @@ export default function BenidormPage() {
           </Link>
         </section>
 
+        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+          <Link href="/cheap-drinks-benidorm" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-teal-300 transition-all">
+            <p className="font-semibold text-gray-900 text-sm">Cheap drinks Benidorm →</p>
+          </Link>
+          <Link href="/2-for-1-benidorm" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-teal-300 transition-all">
+            <p className="font-semibold text-gray-900 text-sm">2-for-1 deals Benidorm →</p>
+          </Link>
+          <Link href="/happy-hour-benidorm" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-teal-300 transition-all">
+            <p className="font-semibold text-gray-900 text-sm">Happy hour Benidorm →</p>
+          </Link>
+        </div>
         <div className="text-center">
           <Link href="/" className="text-teal-600 font-semibold hover:text-teal-700">
             ← Back to Dealeo

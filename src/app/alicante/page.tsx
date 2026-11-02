@@ -211,6 +211,17 @@ export default function AlicanteePage() {
           </Link>
         </section>
 
+        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+          <Link href="/cheap-drinks-alicante" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all">
+            <p className="font-semibold text-gray-900 text-sm">Cheap drinks Alicante →</p>
+          </Link>
+          <Link href="/2-for-1-alicante" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all">
+            <p className="font-semibold text-gray-900 text-sm">2-for-1 deals Alicante →</p>
+          </Link>
+          <Link href="/bar-deals-tonight" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all">
+            <p className="font-semibold text-gray-900 text-sm">Bar deals tonight →</p>
+          </Link>
+        </div>
         {/* Back to app */}
         <div className="text-center">
           <Link href="/" className="text-orange-500 font-semibold hover:text-orange-600">

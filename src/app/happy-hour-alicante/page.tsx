@@ -203,8 +203,11 @@ export default function HappyHourAlicantePage() {
           <Link href="/alicante" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all">
             <p className="font-semibold text-gray-900 text-sm">All Alicante deals →</p>
           </Link>
-          <Link href="/benidorm" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all">
-            <p className="font-semibold text-gray-900 text-sm">Happy hour Benidorm →</p>
+          <Link href="/cheap-drinks-alicante" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all">
+            <p className="font-semibold text-gray-900 text-sm">Cheap drinks Alicante →</p>
+          </Link>
+          <Link href="/2-for-1-alicante" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all">
+            <p className="font-semibold text-gray-900 text-sm">2-for-1 Alicante →</p>
           </Link>
         </div>
 

@@ -51,7 +51,8 @@ export default function HappyHourBenidormPage() {
         </section>
         <div className="flex flex-col sm:flex-row gap-3 mb-8">
           <Link href="/benidorm" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all"><p className="font-semibold text-gray-900 text-sm">All Benidorm deals →</p></Link>
-          <Link href="/happy-hour-alicante" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all"><p className="font-semibold text-gray-900 text-sm">Happy hour Alicante →</p></Link>
+          <Link href="/cheap-drinks-benidorm" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all"><p className="font-semibold text-gray-900 text-sm">Cheap drinks Benidorm →</p></Link>
+          <Link href="/2-for-1-benidorm" className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-orange-300 transition-all"><p className="font-semibold text-gray-900 text-sm">2-for-1 Benidorm →</p></Link>
         </div>
         <div className="text-center"><Link href="/" className="text-orange-500 font-semibold hover:text-orange-600">← Back to Dealeo</Link></div>
       </div>
